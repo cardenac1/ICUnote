@@ -11,25 +11,24 @@
             box-sizing: border-box;
         }
 
-        :root {
-            --primary: #3b82f6;
-            --primary-dark: #2563eb;
-            --secondary: #06b6d4;
-            --danger: #ef4444;
-            --success: #10b981;
-    --dark-bg: #121212;        /* Changed from #0f172a to dark grey */
-    --card-bg: #1e1e1e;        /* Changed from #1e293b to darker grey */
-    --card-hover: #333333;     /* Changed from #334155 to medium grey */
-    --border: #444444;         /* Changed from #334155 to lighter grey */
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --border: #334155;
-            --accent-1: #06b6d4;
-            --accent-2: #f472b6;
-            --accent-3: #10b981;
-            --accent-4: #FFFFFF; 
-            --accent-5: #8b5cf6;
-        }
+:root {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --secondary: #06b6d4;
+    --danger: #ef4444;
+    --success: #10b981;
+    --dark-bg: #121212;
+    --card-bg: #1e1e1e;
+    --card-hover: #333333;
+    --border: #444444;  /* Removed duplicate --border */
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --accent-1: #00e5ff;  /* Brighter cyan */
+    --accent-2: #ff6b6b;  /* Brighter pink/coral */
+    --accent-3: #4ecdc4;  /* Brighter teal */
+    --accent-4: #ffe66d;  /* Bright yellow instead of white */
+    --accent-5: #a78bfa;  /* Brighter purple */
+}
 
    body {
     background-color: var(--dark-bg);
@@ -87,7 +86,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 0.5rem;
         }
 
         /* Modern Button Styles */
@@ -465,6 +464,116 @@
                 width: 95%;
             }
         }
+
+
+
+        /* Reduce spacing between sections */
+.controls {
+    margin-bottom: 1rem;  /* Reduce from default */
+}
+
+.search-wrapper {
+    margin-bottom: 0.5rem;  /* Reduce from default */
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .container {
+        padding: 10px;
+    }
+    
+    /* Stack buttons vertically on mobile */
+    .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    button {
+        width: 100%;
+        font-size: 1rem;
+    }
+    
+    select {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+    }
+    
+    /* Make row items more touch-friendly */
+    .row-item {
+        padding: 1.2rem;
+        font-size: 0.9rem;
+        grid-template-columns: 1fr;  /* Stack columns vertically */
+        gap: 0.5rem;
+    }
+    
+    /* Adjust search input for mobile */
+    #searchInput {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .search-container {
+        flex-direction: column;
+    }
+    
+    /* Smaller FAB on mobile */
+    .fab-add {
+        width: 50px;
+        height: 50px;
+        bottom: 1rem;
+        right: 1rem;
+        font-size: 1.5rem;
+    }
+    
+    /* Modal adjustments */
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 1rem;
+    }
+    
+    /* Details view adjustments */
+    textarea {
+        font-size: 1rem;
+    }
+    
+    .nav-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .nav-buttons button {
+        width: 100%;
+    }
+}
+
+/* Even smaller phones */
+@media (max-width: 480px) {
+    .census-header {
+        font-size: 1.2em;
+    }
+    
+    .census-number {
+        font-size: 1.5em;
+    }
+    
+    h1 {
+        font-size: 1.5em;
+    }
+    
+    .row-item {
+        font-size: 0.85rem;
+    }
+}
+
+
+        
     </style>
 </head>
 <body>
