@@ -85,7 +85,7 @@
         .controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            gap: 0rem;
             margin-bottom: 0.5rem;
         }
 
@@ -142,7 +142,6 @@
         /* Search Container */
         .search-wrapper {
             position: relative;
-            margin-bottom: 1rem;
         }
 
         .search-container {
@@ -172,6 +171,7 @@
             border-radius: 0.5rem;
             color: var(--text-primary);
             font-size: 1rem;
+                margin-bottom: 0;  /* Add this */
         }
 
         #searchInput:focus {
@@ -469,7 +469,7 @@
 
         /* Reduce spacing between sections */
 .controls {
-    margin-bottom: 1rem;  /* Reduce from default */
+  margin-bottom: 0.5rem;  /* Reduce from 1rem or 2rem */
 }
 
 .search-wrapper {
