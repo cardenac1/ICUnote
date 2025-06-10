@@ -479,103 +479,60 @@
     margin-bottom: 0.5rem;  /* Reduce from default */
 }
 
-/* Mobile Responsive Styles */
+
+
+
+        /* Mobile styles - stack everything vertically */
 @media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-    
-    .container {
-        padding: 10px;
-    }
-    
-    /* Stack buttons vertically on mobile */
+    /* Remove any grid or flex layouts on mobile */
     .controls {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-            margin-bottom: 0;  /* Add this to remove bottom margin */
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
     }
     
-    button {
-        width: 100%;
-        font-size: 1rem;
+    /* Make all buttons and controls full width */
+    button, select, input[type="file"], .file-input-wrapper {
+        width: 100% !important;
+        margin: 2px 0 !important;
+        display: block !important;
     }
     
-    select {
-        width: 100%;
-        padding: 12px;
-        font-size: 1rem;
-    }
-    
-    /* Make row items more touch-friendly */
-    .row-item {
-        padding: 1.2rem;
-        font-size: 0.9rem;
-        grid-template-columns: 1fr;  /* Stack columns vertically */
-        gap: 0.5rem;
-    }
-    
-    /* Adjust search input for mobile */
-    #searchInput {
-        width: 100%;
-        margin-bottom: 0.5rem;
-    }
-    
+    /* Stack search container elements */
     .search-container {
-        flex-direction: column;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
     }
     
-    /* Smaller FAB on mobile */
-    .fab-add {
-        width: 50px;
-        height: 50px;
-        bottom: 1rem;
-        right: 1rem;
-        font-size: 1.5rem;
+    #searchInput {
+        width: 100% !important;
+        margin: 0 0 5px 0 !important;
     }
     
-    /* Modal adjustments */
-    .modal-content {
-        width: 95%;
-        margin: 10% auto;
-        padding: 1rem;
+    /* Column selector should also be full width */
+    #columnDropdown {
+        width: 100% !important;
     }
     
-    /* Details view adjustments */
-    textarea {
-        font-size: 1rem;
+    .column-selector {
+        grid-template-columns: 1fr 1fr !important; /* 2 columns max on mobile */
     }
     
-    .nav-buttons {
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .nav-buttons button {
-        width: 100%;
+    /* Ensure proper spacing between stacked elements */
+    .dropdown-toggle {
+        width: 100% !important;
+        margin-bottom: 5px !important;
     }
 }
 
-/* Even smaller phones */
+/* For very small phones */
 @media (max-width: 480px) {
-    .census-header {
-        font-size: 1.2em;
-    }
-    
-    .census-number {
-        font-size: 1.5em;
-    }
-    
-    h1 {
-        font-size: 1.5em;
-    }
-    
-    .row-item {
-        font-size: 0.85rem;
+    .column-selector {
+        grid-template-columns: 1fr !important; /* Single column on very small screens */
     }
 }
-
 
         
     </style>
