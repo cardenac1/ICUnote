@@ -86,7 +86,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 0rem;
-            margin-bottom: 0.5rem;
+                margin-bottom: 0;  /* Add this to remove bottom margin */
         }
 
         /* Modern Button Styles */
@@ -155,6 +155,7 @@
             transform: translateY(-10px);
             transition: all 0.3s ease;
             visibility: hidden;
+                margin-bottom: 0;  /* Add this to remove bottom margin */
         }
 
         .search-container.active {
@@ -453,6 +454,7 @@
             
             .controls {
                 grid-template-columns: 1fr;
+                    margin-bottom: 0;  /* Add this to remove bottom margin */
             }
             
             .fab {
@@ -492,6 +494,7 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+            margin-bottom: 0;  /* Add this to remove bottom margin */
     }
     
     button {
