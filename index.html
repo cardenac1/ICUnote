@@ -459,7 +459,7 @@
 
 
 
-
+/* Mobile Responsive Styles */
 @media (max-width: 768px) {
     body {
         font-size: 14px;
@@ -468,6 +468,10 @@
     .header {
         padding: 0.75rem;
         margin-bottom: 0.75rem;
+    }
+
+    .header-content {
+        text-align: center; /* Ensure title is centered */
     }
 
     .census {
@@ -482,30 +486,40 @@
         padding: 0 0.5rem 1rem 0.5rem;
     }
 
+    /* Main page controls - 3 buttons per row */
     .controls {
-        grid-template-columns: 1fr 1fr; /* Two columns instead of one */
-        gap: 0.5rem;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.4rem;
     }
 
     button, select {
-        padding: 0.6rem 0.8rem; /* Smaller padding */
-        font-size: 0.8rem; /* Smaller font */
+        padding: 0.55rem 0.4rem;
+        font-size: 0.75rem;
+        width: 100%;
     }
 
     .search-container {
         flex-direction: column;
+        padding: 0.5rem;
     }
 
     #searchInput {
         width: 100%;
+        padding: 0.5rem;
+        font-size: 0.8rem;
     }
 
     .row-item {
-        padding: 1rem;
+        padding: 0.8rem;
         font-size: 1rem;
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
+        /* Better text clarity */
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        font-weight: 500;
     }
 
     .fab {
@@ -526,45 +540,151 @@
         padding: 1rem;
     }
 
-    /* Improved mobile nav buttons - compact grid layout */
+    /* Details page - two rows of three buttons */
     .nav-buttons {
         display: grid;
-        grid-template-columns: 1fr 1fr; /* Two columns */
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-rows: auto auto;
         gap: 0.5rem;
         margin: 1rem 0;
     }
 
     .nav-buttons button {
         width: 100%;
-        padding: 0.6rem 0.4rem; /* Smaller padding */
-        font-size: 0.8rem; /* Smaller text */
+        padding: 0.6rem 0.3rem;
+        font-size: 0.75rem;
+        margin: 0; /* Remove any default margins */
     }
 
-    /* Special handling for buttons that should span full width */
-    .nav-buttons button:nth-child(3) { /* "Back to List" button */
-        grid-column: 1 / -1; /* Span full width */
+    /* Specific button positioning for details page */
+    .nav-buttons button:nth-child(1) { /* Previous */
+        grid-column: 1;
+        grid-row: 1;
+    }
+    
+    .nav-buttons button:nth-child(2) { /* Next */
+        grid-column: 2;
+        grid-row: 1;
+    }
+    
+    .nav-buttons button:nth-child(3) { /* Back to List */
+        grid-column: 3;
+        grid-row: 1;
+    }
+    
+    .nav-buttons button:nth-child(4) { /* Consult Note */
+        grid-column: 1;
+        grid-row: 2;
+    }
+    
+    .nav-buttons button:nth-child(5) { /* Trauma Note */
+        grid-column: 2;
+        grid-row: 2;
+    }
+
+    /* Delete button positioned in grid */
+    .delete-button {
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+        margin: 0 !important;
+        display: block !important;
+        font-size: 0.75rem !important;
+        padding: 0.6rem 0.3rem !important;
+        width: 100% !important;
+    }
+
+    /* Sticky header in details view */
+    .details-header {
+        padding: 0.75rem;
+    }
+
+    .sticky-text {
+        font-size: 1.2rem;
+        text-align: center;
+    }
+
+    #editForm {
+        padding: 1rem;
+    }
+
+    textarea {
+        font-size: 0.9rem;
+        padding: 0.6rem;
+    }
+
+    label {
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
     }
 }
 
-/* Add this new media query for very small screens */
+/* Very small screens */
 @media (max-width: 480px) {
     .column-selector {
         grid-template-columns: 1fr;
     }
     
+    /* Main page controls - 2 buttons per row on very small screens */
     .controls {
-        grid-template-columns: 1fr; /* Single column on very small screens */
+        grid-template-columns: 1fr 1fr;
+        gap: 0.3rem;
+    }
+
+    button, select {
+        padding: 0.5rem 0.3rem;
+        font-size: 0.7rem;
     }
     
-    /* Make navigation even more compact on tiny screens */
+    /* Keep details page as 3 columns but with smaller spacing */
     .nav-buttons {
-        grid-template-columns: 1fr 1fr 1fr; /* Three columns for very small screens */
-        gap: 0.25rem;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 0.3rem;
     }
     
     .nav-buttons button {
         padding: 0.5rem 0.2rem;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
+    }
+    
+    .delete-button {
+        font-size: 0.7rem !important;
+        padding: 0.5rem 0.2rem !important;
+    }
+
+    .row-item {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+
+    .sticky-text {
+        font-size: 1rem;
+    }
+
+    #editForm {
+        padding: 0.75rem;
+    }
+
+    textarea {
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+}
+
+/* Extra small screens */
+@media (max-width: 360px) {
+    .nav-buttons button {
+        padding: 0.4rem 0.1rem;
+        font-size: 0.65rem;
+    }
+    
+    .delete-button {
+        font-size: 0.65rem !important;
+        padding: 0.4rem 0.1rem !important;
+    }
+
+    button, select {
+        padding: 0.4rem 0.2rem;
+        font-size: 0.65rem;
     }
 }
 
