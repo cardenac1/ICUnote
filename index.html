@@ -998,56 +998,86 @@
             }
         }
 
-        function searchRows() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            filteredIndexes = [];
+       
 
-            if (!searchTerm) {
-                alert("Please enter a search term.");
-                return;
-            }
+function searchRows() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+    
+    if (!searchTerm) {
+        alert("Please enter a search term.");
+        return;
+    }
 
-            const filteredData = parsedData.filter((row, index) => {
-                const matchFound = row.some(colValue => 
-                    colValue && colValue.toLowerCase().includes(searchTerm)
-                );
-                if (matchFound) {
-                    filteredIndexes.push(index);
-                }
-                return matchFound;
-            });
+    // Clear previous filtered indexes
+    filteredIndexes = [];
+    const filteredData = [];
 
-            displayFilteredRows(filteredData);
+    // Search through each row
+    parsedData.forEach((row, index) => {
+        const matchFound = row.some(colValue => {
+            // Convert to string and check if it includes search term
+            const valueStr = (colValue || '').toString().toLowerCase();
+            return valueStr.includes(searchTerm);
+        });
+        
+        if (matchFound) {
+            filteredIndexes.push(index);
+            filteredData.push(row);
         }
+    });
 
-        function clearSearch() {
-            document.getElementById('searchInput').value = '';
-            displayRows();
-            document.getElementById('searchContainer').classList.remove('active');
-        }
+    console.log('Search results:', filteredData.length, 'matches found');
+    displayFilteredRows(filteredData);
+}
 
-        function displayFilteredRows(filteredData) {
-            const rowList = document.getElementById('rowList');
-            rowList.innerHTML = '';
+function displayFilteredRows(filteredData) {
+    const rowList = document.getElementById('rowList');
+    rowList.innerHTML = '';
 
-            if (filteredData.length === 0) {
-                const noResultsItem = document.createElement('li');
-                noResultsItem.className = 'row-item';
-                noResultsItem.style.textAlign = 'center';
-                noResultsItem.textContent = 'No results found';
-                rowList.appendChild(noResultsItem);
-            } else {
-                filteredData.forEach((row, filteredIndex) => {
-                    const listItem = document.createElement('li');
-                    listItem.className = 'row-item';
-                    listItem.innerHTML = selectedColumns.map((colIndex, idx) => 
-                        `<span class="${colors[idx % colors.length]}">${row[colIndex] || ''}</span>`
-                    ).join(' ');
-                    listItem.onclick = () => showDetails(filteredIndexes[filteredIndex]);
-                    rowList.appendChild(listItem);
-                });
-            }
-        }
+    if (filteredData.length === 0) {
+        const noResultsItem = document.createElement('li');
+        noResultsItem.className = 'row-item';
+        noResultsItem.style.textAlign = 'center';
+        noResultsItem.style.color = 'var(--text-secondary)';
+        noResultsItem.textContent = 'No results found';
+        rowList.appendChild(noResultsItem);
+    } else {
+        filteredData.forEach((row, index) => {
+            const listItem = document.createElement('li');
+            listItem.className = 'row-item';
+            
+            // Create the colored spans
+            listItem.innerHTML = selectedColumns.map((colIndex, idx) => 
+                `<span class="${colors[idx % colors.length]}">${row[colIndex] || ''}</span>`
+            ).join(' ');
+            
+            // Use the correct index from filteredIndexes
+            const originalIndex = filteredIndexes[index];
+            listItem.onclick = () => showDetails(originalIndex);
+            
+            rowList.appendChild(listItem);
+        });
+    }
+}
+
+
+
+function clearSearch() {
+    document.getElementById('searchInput').value = '';
+    filteredIndexes = []; // Clear the filtered indexes
+    displayRows(); // Show all rows again
+    document.getElementById('searchContainer').classList.remove('active');
+}
+
+
+
+
+
+
+
+
+
+        
 
         function showDetails(index) {
             currentRowIndex = index;
