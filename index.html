@@ -102,6 +102,27 @@
         width: 100%;
     }
 
+
+    /* Make upload button match other buttons */
+.controls .file-input-label {
+    padding: 0.75rem 1rem;
+    border: none;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.controls .file-input-wrapper:hover .file-input-label {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+}
+
+
+    
+
     .file-input-wrapper:hover .file-input-label {
         background: var(--card-hover);
         border-color: var(--secondary);
@@ -305,12 +326,11 @@
         border-color: var(--primary);
     }
 
-    .column-button.selected {
-        background: var(--primary);
-        border-color: var(--primary);
-        color: white;
-    }
-
+.column-button.selected {
+    background: var(--success);      /* Changed from var(--primary) */
+    border-color: var(--success);    /* Changed from var(--primary) */
+    color: white;
+}
     /* Modal */
     .modal {
         display: none;
@@ -564,12 +584,13 @@
         margin: 1rem 0;
     }
 
-    .nav-buttons button {
-        width: 100%;
-        padding: 0.6rem 0.3rem;
-        font-size: 0.75rem;
-        margin: 0;
-    }
+    
+.nav-buttons button {
+    width: 100%;
+    padding: 0.8rem 0.4rem;  /* Increased from 0.6rem 0.3rem */
+    font-size: 0.85rem;      /* Increased from 0.75rem */
+    margin: 0;
+}
 
     /* All buttons automatically flow into the 3x2 grid */
     .nav-buttons button:nth-child(1) { /* Previous */
