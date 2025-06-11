@@ -457,8 +457,6 @@
         display: block;
     }
 
-
-
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     body {
@@ -486,7 +484,18 @@
         padding: 0 0.5rem 1rem 0.5rem;
     }
 
-    /* Main page controls - 3 buttons per row */
+    /* File input as part of controls grid */
+    .file-input-wrapper {
+        margin-bottom: 0; /* Remove separate margin */
+    }
+
+    .file-input-label {
+        padding: 0.55rem 0.4rem;
+        font-size: 0.75rem;
+        border: 1px solid var(--primary); /* Solid border instead of dashed */
+    }
+
+    /* Main page controls - 3 buttons per row including file upload */
     .controls {
         grid-template-columns: 1fr 1fr 1fr;
         gap: 0.4rem;
@@ -687,7 +696,6 @@
         font-size: 0.65rem;
     }
 }
-
     
 </style>
 </head>
@@ -702,16 +710,17 @@
     </div>
 
     <div class="container">
-        <!-- File Upload -->
-        <div class="file-input-wrapper">
-            <input type="file" id="fileInput" accept=".csv">
-            <label for="fileInput" class="file-input-label">
-                📁 Upload CSV File
-            </label>
-        </div>
+    
+        
 
         <!-- Controls -->
         <div class="controls">
+            <div class="file-input-wrapper">
+            <input type="file" id="fileInput" accept=".csv">
+            <label for="fileInput" class="file-input-label">
+                📁 Upload
+            </label>
+        </div>
             <button onclick="toggleColumnDropdown()">Column options</button>
             <select id="columnSelect" onchange="sortRows()">
                 <option value="">Select Column to Sort</option>
@@ -772,9 +781,10 @@
             <div class="nav-buttons">
                 <button onclick="generateNoteRTF('consult')">📝 Consult Note</button>
                 <button onclick="generateNoteRTF('trauma')">🚑 Trauma Note</button>
+                <button class="delete-button" onclick="deleteCurrentEntry()">🗑️ Delete Entry</button>
             </div>
 
-            <button class="delete-button" onclick="deleteCurrentEntry()">🗑️ Delete Entry</button>
+            
         </div>
     </div>
 
