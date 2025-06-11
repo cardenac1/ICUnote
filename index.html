@@ -240,16 +240,16 @@
         margin-top: 1rem;
     }
 
-.row-item {
+
+    .row-item {
     background: var(--card-bg);
     padding: 1rem;
     border-radius: 0.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;  /* Adjust ratios as needed */
-    gap: 1rem;
+    display: flex;
     align-items: center;
+    gap: 2rem;  /* Increased gap for better spacing */
     font-size: 1.5rem;
     border-left: 4px solid transparent;
     text-rendering: optimizeLegibility;
@@ -258,13 +258,15 @@
     font-weight: 500;
 }
 
-/* Add spans to fill grid cells properly */
-.row-item span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+/* Give each span consistent width */
+.row-item span:first-child { flex: 2; }  /* Name - gets more space */
+.row-item span:nth-child(2) { flex: 1; min-width: 100px; }  /* Room */
+.row-item span:nth-child(3) { flex: 1; min-width: 80px; }   /* Other columns */
+.row-item span:nth-child(4) { flex: 1; min-width: 80px; }
+.row-item span:nth-child(5) { flex: 1; min-width: 80px; }
 
+
+    
 
     
 
