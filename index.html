@@ -456,7 +456,6 @@
         margin: 2rem auto;
         display: block;
     }
-
 /* Mobile Responsive Styles */
 @media (max-width: 768px) {
     body {
@@ -562,10 +561,10 @@
         width: 100%;
         padding: 0.6rem 0.3rem;
         font-size: 0.75rem;
-        margin: 0; /* Remove any default margins */
+        margin: 0;
     }
 
-    /* Specific button positioning for details page */
+    /* All buttons automatically flow into the 3x2 grid */
     .nav-buttons button:nth-child(1) { /* Previous */
         grid-column: 1;
         grid-row: 1;
@@ -590,16 +589,19 @@
         grid-column: 2;
         grid-row: 2;
     }
+    
+    .nav-buttons button:nth-child(6) { /* Delete Entry */
+        grid-column: 3;
+        grid-row: 2;
+    }
 
-    /* Delete button positioned in grid */
-    .delete-button {
-        grid-column: 3 !important;
-        grid-row: 2 !important;
-        margin: 0 !important;
-        display: block !important;
-        font-size: 0.75rem !important;
-        padding: 0.6rem 0.3rem !important;
-        width: 100% !important;
+    /* Override delete button styles to match grid */
+    .nav-buttons .delete-button {
+        background: linear-gradient(135deg, var(--danger), #dc2626);
+        margin: 0;
+        padding: 0.6rem 0.3rem;
+        font-size: 0.75rem;
+        width: 100%;
     }
 
     /* Sticky header in details view */
@@ -655,9 +657,9 @@
         font-size: 0.7rem;
     }
     
-    .delete-button {
-        font-size: 0.7rem !important;
-        padding: 0.5rem 0.2rem !important;
+    .nav-buttons .delete-button {
+        padding: 0.5rem 0.2rem;
+        font-size: 0.7rem;
     }
 
     .row-item {
@@ -686,9 +688,9 @@
         font-size: 0.65rem;
     }
     
-    .delete-button {
-        font-size: 0.65rem !important;
-        padding: 0.4rem 0.1rem !important;
+    .nav-buttons .delete-button {
+        padding: 0.4rem 0.1rem;
+        font-size: 0.65rem;
     }
 
     button, select {
