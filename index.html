@@ -759,19 +759,43 @@
         <!-- Floating Action Button -->
         <button class="fab" onclick="showAddEntryModal()">+</button>
 
-        <!-- Add Entry Modal -->
-        <div id="addEntryModal" class="modal">
-            <div class="modal-content">
-                <h2>Add New Entry</h2>
-                <form id="addEntryForm" onsubmit="addEntry(event)">
-                    <div id="newEntryFields"></div>
-                    <div class="nav-buttons">
-                        <button type="submit">Save Entry</button>
-                        <button type="button" onclick="closeAddEntryModal()">Cancel</button>
-                    </div>
-                </form>
+
+
+        
+<!-- Add Entry Modal -->
+<div id="addEntryModal" class="modal">
+    <div class="modal-content">
+        <h2>Add New Entry</h2>
+        
+        <!-- Entry Type Selection -->
+        <div id="entryTypeSelection" class="nav-buttons">
+            <button type="button" onclick="showManualEntry()">✏️ Manual Entry</button>
+            <button type="button" onclick="showPasteEntry()">📋 Paste Entry</button>
+            <button type="button" onclick="closeAddEntryModal()">Cancel</button>
+        </div>
+
+        <!-- Manual Entry Form -->
+        <form id="addEntryForm" onsubmit="addEntry(event)" style="display: none;">
+            <div id="newEntryFields"></div>
+            <div class="nav-buttons">
+                <button type="submit">Save Entry</button>
+                <button type="button" onclick="backToEntrySelection()">← Back</button>
+            </div>
+        </form>
+
+        <!-- Paste Entry Form -->
+        <div id="pasteEntrySection" style="display: none;">
+            <label for="pasteTextArea">Paste Cerner patient list data:</label>
+            <textarea id="pasteTextArea" placeholder="Paste patient list here..." rows="10" style="width: 100%; margin: 0.5rem 0; font-family: monospace; font-size: 0.9rem;"></textarea>
+            <div class="nav-buttons">
+                <button type="button" onclick="processPastedEntry()">Process & Add</button>
+                <button type="button" onclick="backToEntrySelection()">← Back</button>
             </div>
         </div>
+    </div>
+</div>
+
+        
 
         <!-- Details View -->
         <div class="details-view" id="detailsView">
@@ -1116,10 +1140,13 @@
             });
         }
 
-        function showAddEntryModal() {
-            document.getElementById('addEntryModal').style.display = 'block';
-            generateNewEntryFields();
-        }
+function showAddEntryModal() {
+    document.getElementById('addEntryModal').style.display = 'block';
+    // Show the selection screen first
+    document.getElementById('entryTypeSelection').style.display = 'block';
+    document.getElementById('addEntryForm').style.display = 'none';
+    document.getElementById('pasteEntrySection').style.display = 'none';
+}
 
         function closeAddEntryModal() {
             document.getElementById('addEntryModal').style.display = 'none';
@@ -1236,6 +1263,206 @@ ${finalLine}`;
         window.onload = function() {
             loadCSVFromLocalStorage();
         };
+
+
+
+
+
+
+
+
+
+
+
+
+        function showManualEntry() {
+    document.getElementById('entryTypeSelection').style.display = 'none';
+    document.getElementById('addEntryForm').style.display = 'block';
+    document.getElementById('pasteEntrySection').style.display = 'none';
+    generateNewEntryFields();
+}
+
+function showPasteEntry() {
+    document.getElementById('entryTypeSelection').style.display = 'none';
+    document.getElementById('addEntryForm').style.display = 'none';
+    document.getElementById('pasteEntrySection').style.display = 'block';
+    document.getElementById('pasteTextArea').focus();
+}
+
+function backToEntrySelection() {
+    document.getElementById('entryTypeSelection').style.display = 'block';
+    document.getElementById('addEntryForm').style.display = 'none';
+    document.getElementById('pasteEntrySection').style.display = 'none';
+    document.getElementById('pasteTextArea').value = '';
+}
+
+function processPastedEntry() {
+    const pastedText = document.getElementById('pasteTextArea').value.trim();
+    
+    if (!pastedText) {
+        alert('Please paste some data first.');
+        return;
+    }
+
+    // Parse the pasted data
+    const newPatients = parseCernerData(pastedText);
+    
+    if (newPatients && newPatients.length > 0) {
+        // Add all new patients to the existing data
+        newPatients.forEach(patient => {
+            parsedData.push(patient);
+        });
+        
+        displayRows();
+        saveCSVToLocalStorage();
+        closeAddEntryModal();
+        updateCensus();
+        alert(`Successfully added ${newPatients.length} patient(s)!`);
+    } else {
+        alert('Could not parse the pasted data. Please check the format.');
+    }
+}
+
+function parseCernerData(text) {
+    const lines = text.split('\n').filter(line => line.trim());
+    const newPatients = [];
+    
+    console.log('Parsing CERNER list, total lines:', lines.length);
+    
+    lines.forEach((line, lineIndex) => {
+        // Skip header rows or empty lines
+        if (!line.trim() || line.toLowerCase().includes('patient list') || 
+            (line.toLowerCase().includes('room') && line.toLowerCase().includes('name'))) {
+            return;
+        }
+        
+        // Try tab-delimited first
+        let columns = line.split('\t');
+        
+        // Remove empty columns (common when pasting from CERNER)
+        columns = columns.filter(col => col.trim() !== '');
+        
+        console.log(`Line ${lineIndex}: Found ${columns.length} non-empty columns:`, columns);
+        
+        // If we don't have enough columns, try other delimiters
+        if (columns.length < 3) {
+            // Try multiple spaces
+            columns = line.split(/\s{2,}/).filter(col => col.trim() !== '');
+            console.log(`Line ${lineIndex}: After space split: ${columns.length} columns`);
+        }
+        
+        // If still not enough, try to parse known CERNER formats
+        if (columns.length < 3) {
+            // Pattern 1: "WMC 5NE 591 A    KRAEMER, RICHARD    1170075    ..."
+            const match1 = line.match(/^((?:WMC|[A-Z]{2,4})\s+\S+\s+\S+(?:\s+\S+)?)\s+(.*?),\s*(\S+)\s+(\d{5,})/);
+            if (match1) {
+                const room = match1[1].trim();
+                const lastName = match1[2].trim();
+                const firstName = match1[3].trim();
+                const mrn = match1[4].trim();
+                const name = `${lastName}, ${firstName}`;
+                
+                columns = [room, name, mrn];
+                console.log(`Line ${lineIndex}: Parsed using pattern 1:`, columns);
+            }
+            
+            // Pattern 2: Room and name together, then MRN
+            if (columns.length < 3) {
+                const match2 = line.match(/^(\S+.*?)\s{2,}(\d{5,})/);
+                if (match2) {
+                    const roomAndName = match2[1].trim();
+                    const mrn = match2[2].trim();
+                    
+                    // Try to split room and name
+                    const roomNameMatch = roomAndName.match(/^((?:WMC|[A-Z]{2,4})\s+\S+\s+\S+(?:\s+\S+)?)\s+(.+)/);
+                    if (roomNameMatch) {
+                        columns = [roomNameMatch[1].trim(), roomNameMatch[2].trim(), mrn];
+                    } else {
+                        columns = ['', roomAndName, mrn];
+                    }
+                    console.log(`Line ${lineIndex}: Parsed using pattern 2:`, columns);
+                }
+            }
+        }
+        
+        // Validate we have at least name and MRN
+        if (columns.length >= 2) {
+            let room = '';
+            let name = '';
+            let mrn = '';
+            let att = '';
+            
+            // Try to identify columns by content
+            columns.forEach((col, idx) => {
+                const trimmed = col.trim();
+                
+                // MRN is usually 5-10 digits
+                if (/^\d{5,10}$/.test(trimmed) && !mrn) {
+                    mrn = trimmed;
+                }
+                // Room usually starts with unit code
+                else if (/^(WMC|ICU|CCU|[A-Z]{2,4})\s+/.test(trimmed) && !room) {
+                    room = trimmed;
+                }
+                // Name usually contains comma
+                else if (trimmed.includes(',') && !name) {
+                    name = trimmed;
+                }
+                // Attending often contains "MD" or "MBBS" or "DO"
+                else if ((trimmed.includes('MD') || trimmed.includes('MBBS') || 
+                         trimmed.includes('DO') || trimmed.includes('Dr')) && !att) {
+                    att = trimmed;
+                }
+                // If we have room and MRN but no name yet, this might be name
+                else if (room && mrn && !name) {
+                    name = trimmed;
+                }
+            });
+            
+            // If we still don't have a name but have other fields, use what we have
+            if (!name && columns.length > 0) {
+                name = columns.find(c => c.trim() && !c.match(/^\d+$/) && c !== room) || 'Unknown';
+            }
+            
+            console.log(`Line ${lineIndex}: Final parsed - Room: ${room}, Name: ${name}, MRN: ${mrn}`);
+            
+            // Only add if we have at least name
+            if (name) {
+                // Create row array matching your CSV structure
+                // Based on your headers: ['Name', 'RM', 'MRN', 'Att', 'Problems', 'ICS', 'VIOLIN', 'ORDERS', 'To do', 'Priority']
+                const patientRow = [
+                    name,           // Name
+                    room || 'TBD',  // RM
+                    mrn || '',      // MRN
+                    att || '',      // Att
+                    '',             // Problems
+                    '',             // ICS
+                    '',             // VIOLIN
+                    '',             // ORDERS
+                    '',             // To do
+                    ''              // Priority
+                ];
+                
+                newPatients.push(patientRow);
+            }
+        }
+    });
+    
+    console.log('Total patients parsed:', newPatients.length);
+    if (newPatients.length > 0) {
+        console.log('First patient:', newPatients[0]);
+        console.log('Last patient:', newPatients[newPatients.length - 1]);
+    }
+    
+    return newPatients;
+}
+
+
+
+
+
+
+        
     </script>
 </body>
 </html>
