@@ -587,8 +587,9 @@
     
 .nav-buttons button {
     width: 100%;
-    padding: 0.8rem 0.4rem;  /* Increased from 0.6rem 0.3rem */
-    font-size: 0.85rem;      /* Increased from 0.75rem */
+    padding: 1rem 0.5rem;      /* Increased from 0.6rem 0.3rem */
+    font-size: 0.9rem;         /* Increased from 0.75rem */
+    height: 50px;              /* Added fixed height */
     margin: 0;
 }
 
@@ -623,15 +624,14 @@
         grid-row: 2;
     }
 
-    /* Override delete button styles to match grid */
-    .nav-buttons .delete-button {
-        background: linear-gradient(135deg, var(--danger), #dc2626);
-        margin: 0;
-        padding: 0.6rem 0.3rem;
-        font-size: 0.75rem;
-        width: 100%;
-    }
-
+.nav-buttons .delete-button {
+    background: linear-gradient(135deg, var(--danger), #dc2626);
+    margin: 0;
+    padding: 1rem 0.5rem;      /* Match other buttons */
+    font-size: 0.9rem;         /* Match other buttons */
+    height: 50px;              /* Match other buttons */
+    width: 100%;
+}
     /* Sticky header in details view */
     .details-header {
         padding: 0.75rem;
@@ -680,10 +680,11 @@
         gap: 0.3rem;
     }
     
-    .nav-buttons button {
-        padding: 0.5rem 0.2rem;
-        font-size: 0.7rem;
-    }
+.nav-buttons button {
+    padding: 0.8rem 0.3rem;    /* Increased */
+    font-size: 0.85rem;        /* Increased */
+    height: 45px;              /* Added height */
+}
     
     .nav-buttons .delete-button {
         padding: 0.5rem 0.2rem;
