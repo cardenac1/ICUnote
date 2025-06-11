@@ -230,6 +230,12 @@
         gap: 1rem;
         font-size: 1.5rem;
         border-left: 4px solid transparent;
+            /* Add these for better text clarity */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: 500; /* Make text slightly bolder */
+}
     }
 
     .row-item:hover {
@@ -451,88 +457,118 @@
         display: block;
     }
 
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
-        body {
-            font-size: 14px;
-        }
 
-        .header {
-            padding: 0.75rem;
-            margin-bottom: 0.75rem;
-        }
 
-        .census {
-            font-size: 1rem;
-        }
 
-        .census-number {
-            font-size: 1.5rem;
-        }
-
-        .container {
-            padding: 0 0.5rem 1rem 0.5rem;
-        }
-
-        .controls {
-            grid-template-columns: 1fr;
-            gap: 0.25rem;
-        }
-
-        button, select {
-            width: 100%;
-            padding: 0.75rem;
-            font-size: 0.85rem;
-        }
-
-        .search-container {
-            flex-direction: column;
-        }
-
-        #searchInput {
-            width: 100%;
-        }
-
-        .row-item {
-            padding: 1rem;
-            font-size: 1rem;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.5rem;
-        }
-
-        .fab {
-            bottom: 1rem;
-            right: 1rem;
-            width: 48px;
-            height: 48px;
-            font-size: 1.5rem;
-        }
-
-        .column-selector {
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .modal-content {
-            margin: 10% auto;
-            width: 95%;
-            padding: 1rem;
-        }
-
-        .nav-buttons {
-            flex-direction: column;
-        }
-
-        .nav-buttons button {
-            width: 100%;
-        }
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
     }
 
-    @media (max-width: 480px) {
-        .column-selector {
-            grid-template-columns: 1fr;
-        }
+    .header {
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
     }
+
+    .census {
+        font-size: 1rem;
+    }
+
+    .census-number {
+        font-size: 1.5rem;
+    }
+
+    .container {
+        padding: 0 0.5rem 1rem 0.5rem;
+    }
+
+    .controls {
+        grid-template-columns: 1fr 1fr; /* Two columns instead of one */
+        gap: 0.5rem;
+    }
+
+    button, select {
+        padding: 0.6rem 0.8rem; /* Smaller padding */
+        font-size: 0.8rem; /* Smaller font */
+    }
+
+    .search-container {
+        flex-direction: column;
+    }
+
+    #searchInput {
+        width: 100%;
+    }
+
+    .row-item {
+        padding: 1rem;
+        font-size: 1rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .fab {
+        bottom: 1rem;
+        right: 1rem;
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+    }
+
+    .column-selector {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .modal-content {
+        margin: 10% auto;
+        width: 95%;
+        padding: 1rem;
+    }
+
+    /* Improved mobile nav buttons - compact grid layout */
+    .nav-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* Two columns */
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+
+    .nav-buttons button {
+        width: 100%;
+        padding: 0.6rem 0.4rem; /* Smaller padding */
+        font-size: 0.8rem; /* Smaller text */
+    }
+
+    /* Special handling for buttons that should span full width */
+    .nav-buttons button:nth-child(3) { /* "Back to List" button */
+        grid-column: 1 / -1; /* Span full width */
+    }
+}
+
+/* Add this new media query for very small screens */
+@media (max-width: 480px) {
+    .column-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .controls {
+        grid-template-columns: 1fr; /* Single column on very small screens */
+    }
+    
+    /* Make navigation even more compact on tiny screens */
+    .nav-buttons {
+        grid-template-columns: 1fr 1fr 1fr; /* Three columns for very small screens */
+        gap: 0.25rem;
+    }
+    
+    .nav-buttons button {
+        padding: 0.5rem 0.2rem;
+        font-size: 0.75rem;
+    }
+}
+
+    
 </style>
 </head>
 <body>
