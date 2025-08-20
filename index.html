@@ -243,36 +243,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        .stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            border: 1px solid var(--border);
-            text-align: center;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: bold;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
@@ -302,8 +272,7 @@
 
         <div class="input-section">
             <div class="input-controls">
-                <button onclick="pasteFromClipboard()">📋 Paste from Clipboard</button>
-                <button onclick="processData()">Generate Diagram</button>
+                <button onclick="pasteAndGenerateFishbone()">📋 Paste and Generate </button>
                 <button onclick="clearData()">🗑️ Clear</button>
             </div>
             <textarea id="dataInput" placeholder="Paste your medical data here...&#10;&#10;Include:&#10;- Vital signs (temperature, HR, BP, O2 sat)&#10;- Laboratory values (CBC, BMP, LFTs, etc.)&#10;- Intake and output data&#10;- Medication lists&#10;- Any other relevant clinical data"></textarea>
@@ -315,36 +284,26 @@
         </div>
 
         <div class="success-message" id="successMessage">
-            ✅ Diagram generated successfully and copied to clipboard
+            ✅ Diagram copied to clipboard!
         </div>
 
         <div class="results" id="results">
-            <div class="stats" id="stats">
-                <!-- Stats will be populated dynamically -->
-            </div>
-
-            <div class="fishbone-section">
-                <h3>🐟 Fishbone Diagram <button onclick="copyFishbone()" style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.8rem;">📋 Copy Fishbone</button></h3>
-                <div id="fishboneOutput"></div>
-            </div>
-
             <div class="warnings-section">
                 <h3>⚠️ Clinical Warnings</h3>
                 <div id="warningsOutput"></div>
             </div>
+
+            <div class="fishbone-section">
+                <h3><button onclick="copyFishbone()" style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.8rem;">📋 Copy </button></h3>
+                <div id="fishboneOutput"></div>
+            </div>
         </div>
 
-        <div class="excel-prompt" id="excelPrompt">
-            <h3>📊 Ready for Excel</h3>
-            <p>Your fishbone diagram has been copied to clipboard.</p>
-            <p><strong>Now paste the fishbone into Excel for documentation.</strong></p>
-            <button onclick="hideExcelPrompt()">Got it!</button>
-        </div>
+     
     </div>
 
     <script>
         let currentFishbone = '';
-        let currentStats = {};
 
         // Helper function to parse date/time from medical data
         function parseDateTime(dateTimeStr) {
@@ -1118,7 +1077,9 @@
             // Helper function to wrap abnormal values
             const markAbnormal = (value) => `*${value}*`;
             
-            // VITALS SECTION
+            // VITALS SECTION - All on one line
+            let vitalsLine = '';
+            
             if (data.vitals.temp && data.vitals.temp.length > 0) {
                 const tempMin = Math.min(...data.vitals.temp).toFixed(1);
                 const tempMax = Math.max(...data.vitals.temp).toFixed(1);
@@ -1128,12 +1089,12 @@
                 const hadHypothermia = data.vitals.temp.some(t => t < 35);
                 
                 if (hadFever || hadHypothermia) {
-                    fishbone += `T ${markAbnormal(`${tempMin}-${tempMax}`)} (${tempAvg}), `;
+                    vitalsLine += `T ${markAbnormal(`${tempMin}-${tempMax}`)} (${tempAvg}), `;
                 } else {
-                    fishbone += `T ${tempMin}-${tempMax} (${tempAvg}), `;
+                    vitalsLine += `T ${tempMin}-${tempMax} (${tempAvg}), `;
                 }
             } else {
-                fishbone += 'no T, ';
+                vitalsLine += 'no T, ';
             }
             
             if (data.vitals.hr && data.vitals.hr.length > 0) {
@@ -1145,12 +1106,12 @@
                 const hadBradycardia = data.vitals.hr.some(hr => hr < 60);
                 
                 if (hadTachycardia || hadBradycardia) {
-                    fishbone += `HR ${markAbnormal(`${hrMin}-${hrMax}`)}(${hrAvg}), `;
+                    vitalsLine += `HR ${markAbnormal(`${hrMin}-${hrMax}`)}(${hrAvg}), `;
                 } else {
-                    fishbone += `HR ${hrMin}-${hrMax}(${hrAvg}), `;
+                    vitalsLine += `HR ${hrMin}-${hrMax}(${hrAvg}), `;
                 }
             } else {
-                fishbone += 'no HR, ';
+                vitalsLine += 'no HR, ';
             }
 
             // Handle SBP and DBP separately
@@ -1163,12 +1124,12 @@
                 const hadHypertension = data.vitals.sbp.some(sbp => sbp > 180);
                 
                 if (hadHypotension || hadHypertension) {
-                    fishbone += `SBP ${markAbnormal(`${sbpMin}-${sbpMax}`)} (${sbpAvg}), `;
+                    vitalsLine += `SBP ${markAbnormal(`${sbpMin}-${sbpMax}`)} (${sbpAvg}), `;
                 } else {
-                    fishbone += `SBP ${sbpMin}-${sbpMax} (${sbpAvg}), `;
+                    vitalsLine += `SBP ${sbpMin}-${sbpMax} (${sbpAvg}), `;
                 }
             } else {
-                fishbone += 'no SBP, ';
+                vitalsLine += 'no SBP, ';
             }
 
             if (data.vitals.dbp && data.vitals.dbp.length > 0) {
@@ -1180,12 +1141,12 @@
                 const hadDiastolicHypotension = data.vitals.dbp.some(dbp => dbp < 60);
                 
                 if (hadDiastolicHypertension || hadDiastolicHypotension) {
-                    fishbone += `DBP ${markAbnormal(`${dbpMin}-${dbpMax}`)} (${dbpAvg}) `;
+                    vitalsLine += `DBP ${markAbnormal(`${dbpMin}-${dbpMax}`)} (${dbpAvg}), `;
                 } else {
-                    fishbone += `DBP ${dbpMin}-${dbpMax} (${dbpAvg}) `;
+                    vitalsLine += `DBP ${dbpMin}-${dbpMax} (${dbpAvg}), `;
                 }
             } else {
-                fishbone += 'no DBP ';
+                vitalsLine += 'no DBP, ';
             }
 
             // O2 saturation with therapy
@@ -1196,34 +1157,32 @@
                 const hadHypoxia = data.vitals.o2.some(o2 => o2 < 94);
                 
                 if (hadHypoxia) {
-                    fishbone += `O2 ${markAbnormal(`${o2Min}-${o2Max}`)}`;
+                    vitalsLine += `O2 ${markAbnormal(`${o2Min}-${o2Max}`)}`;
                 } else {
-                    fishbone += `O2 ${o2Min}-${o2Max}`;
+                    vitalsLine += `O2 ${o2Min}-${o2Max}`;
                 }
                 
                 if (data.o2therapyCode && data.o2therapyCode !== 'RA') {
-                    fishbone += `-${markAbnormal(data.o2therapyCode)}`;
+                    vitalsLine += `-${markAbnormal(data.o2therapyCode)}`;
                     if (data.o2flowRaw && data.o2therapyCode !== 'Vent') {
-                        fishbone += `@${data.o2flowRaw}`;
+                        vitalsLine += `@${data.o2flowRaw}`;
                     }
                 }
 
             } else if (data.o2therapyCode) {
                 if (data.o2therapyCode === 'RA') {
-                    fishbone += `O2: ${data.o2therapyCode}`;
+                    vitalsLine += `O2: ${data.o2therapyCode}`;
                 } else {
-                    fishbone += `O2: ${markAbnormal(data.o2therapyCode)}`;
+                    vitalsLine += `O2: ${markAbnormal(data.o2therapyCode)}`;
                     if (data.o2flowRaw && data.o2therapyCode !== 'Vent') {
-                        fishbone += `@${data.o2flowRaw}`;
+                        vitalsLine += `@${data.o2flowRaw}`;
                     }
                 }
             } else {
-                fishbone += 'no O2';
+                vitalsLine += 'no O2';
             }
 
-            fishbone += '\n';
-
-            // OXYGEN THERAPY DETAILS
+            // Add ventilator details to the same line if present
             if (data.o2therapyCode === 'Vent') {
                 const mode = data.ventModeRaw ? data.ventModeRaw.replace(/[\s\/\+]+/g,'') : '';
                 const freq = data.ventFrequencyRaw || '';
@@ -1231,8 +1190,10 @@
                 const peep = data.ventPeepRaw || '';
                 const fio2 = data.ventFiO2Raw || '';
                 const settings = [freq, tv, peep, fio2 ? fio2 + '%' : ''].filter(x => x).join('/');
-                fishbone += `${markAbnormal(`Ventilator: ${mode} ${settings}`)}\n`;
+                vitalsLine += ` ${markAbnormal(`Vent: ${mode} ${settings}`)}`;
             }
+
+            fishbone += vitalsLine + '\n';
 
             // INTAKE/OUTPUT SECTION
             const text = document.getElementById('dataInput').value;
@@ -1303,7 +1264,7 @@
                 }
                 
                 if (!hasIntakes) {
-                    fishbone += `None found (fluids, infusions, blood products, oral) in last ${elapsedHoursDisplay}hr\n`;
+                    // Remove the "None found" message
                 }
                 
                 // OUTPUTS  
@@ -1520,6 +1481,35 @@
                 `${kStr.padEnd(col1)} |` +
                 `${co2Str.padEnd(col2)} |` +
                 `${crStr.padEnd(col3)}\\\n`;
+
+            // Add calcium/mag/phos line
+            const ca = data.labs.ca?.[0];
+            const mg = data.labs.mg?.[0];
+            const phos = data.labs.phos?.[0];
+            
+            let caStr = ca !== undefined ? ca.toString() : '--';
+            let mgStr = mg !== undefined ? mg.toString() : '--';
+            let phosStr = phos !== undefined ? phos.toString() : '--';
+            
+            // Mark abnormal values
+            if (ca !== undefined) {
+                const isIonized = ca < 7 && !data.labs.caType;
+                if (isIonized) {
+                    if (ca < 4.0 || ca > 5.3) caStr = markAbnormal(ca);
+                } else {
+                    if (ca < 8.5 || ca > 10.2) caStr = markAbnormal(ca);
+                }
+            }
+            
+            if (mg !== undefined && (mg < 1.7 || mg > 2.2)) {
+                mgStr = markAbnormal(mg);
+            }
+            
+            if (phos !== undefined && (phos < 2.5 || phos > 4.5)) {
+                phosStr = markAbnormal(phos);
+            }
+            
+            fishbone += `(${caStr}/${mgStr}/${phosStr})\n`;
 
             // Check if labs are recent
             const currentDate = new Date();
@@ -1766,47 +1756,82 @@
             }
         }
 
-        function generateStats(data, fishbone, warnings) {
-            const stats = {
-                vitalsCount: 0,
-                labsCount: 0,
-                warningsCount: warnings.length,
-                fishboneLines: fishbone.split('\n').length
-            };
-
-            // Count vitals
-            if (data.vitals) {
-                stats.vitalsCount = Object.keys(data.vitals).length;
+        function pasteAndGenerateFishbone() {
+            const textarea = document.getElementById('dataInput');
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            button.textContent = '📋⚡ Processing...';
+            button.disabled = true;
+            
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        if (text.trim()) {
+                            // Paste the content
+                            textarea.value = text;
+                            
+                            // Show loading
+                            document.getElementById('loading').style.display = 'block';
+                            document.getElementById('results').style.display = 'none';
+                            
+                            // Process data after a short delay
+                            setTimeout(() => {
+                                try {
+                                    // Extract lab values and generate fishbone
+                                    const labData = extractLabValues(text);
+                                    const fishbone = generateFishbone(labData);
+                                    const warnings = generateWarnings(labData);
+                                    
+                                    // Generate I/O warnings if data available
+                                    const ioData = extractIntakeOutputData(text);
+                                    const ioWarnings = generateIntakeOutputWarnings(ioData, labData.weight);
+                                    
+                                    // Combine all warnings
+                                    const allWarnings = [...warnings, ...ioWarnings];
+                                    
+                                    // Store current fishbone
+                                    currentFishbone = fishbone;
+                                    
+                                    // Display results
+                                    displayResults(fishbone, allWarnings);
+                                    
+                                    // Copy to clipboard automatically
+                                    copyToClipboard(fishbone);
+                                    
+                                    button.textContent = '✅ Completed';
+                                    button.classList.add('success');
+                                    button.disabled = false;
+                                    
+                                } catch (error) {
+                                    console.error('Error processing data:', error);
+                                    alert('Error processing medical data. Please check the format and try again.');
+                                    button.textContent = originalText;
+                                    button.disabled = false;
+                                } finally {
+                                    // Hide loading
+                                    document.getElementById('loading').style.display = 'none';
+                                }
+                            }, 500);
+                            
+                        } else {
+                            button.textContent = originalText;
+                            button.disabled = false;
+                            alert('Clipboard is empty or contains no text.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Failed to read clipboard: ', err);
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        alert('Failed to read from clipboard. Please paste manually using Ctrl+V (or Cmd+V on Mac) and then click the button again.');
+                    });
+            } else {
+                button.textContent = originalText;
+                button.disabled = false;
+                alert('Clipboard API not supported. Please paste manually using Ctrl+V (or Cmd+V on Mac) and then click the button again.');
+                textarea.focus();
             }
-
-            // Count labs
-            if (data.labs) {
-                stats.labsCount = Object.keys(data.labs).length;
-            }
-
-            return stats;
-        }
-
-        function displayStats(stats) {
-            const statsContainer = document.getElementById('stats');
-            statsContainer.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-number">${stats.vitalsCount}</div>
-                    <div class="stat-label">Vital Parameters</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${stats.labsCount}</div>
-                    <div class="stat-label">Lab Values</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${stats.warningsCount}</div>
-                    <div class="stat-label">Clinical Warnings</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">${stats.fishboneLines}</div>
-                    <div class="stat-label">Fishbone Lines</div>
-                </div>
-            `;
         }
 
         function processData() {
@@ -1839,12 +1864,8 @@
                     // Store current fishbone
                     currentFishbone = fishbone;
                     
-                    // Generate stats
-                    const stats = generateStats(labData, fishbone, allWarnings);
-                    currentStats = stats;
-                    
                     // Display results
-                    displayResults(fishbone, allWarnings, stats);
+                    displayResults(fishbone, allWarnings);
                     
                     // Try to copy to clipboard automatically
                     copyToClipboard(fishbone);
@@ -1859,10 +1880,7 @@
             }, 500);
         }
 
-        function displayResults(fishbone, warnings, stats) {
-            // Display stats
-            displayStats(stats);
-            
+        function displayResults(fishbone, warnings) {
             // Display fishbone
             document.getElementById('fishboneOutput').textContent = fishbone;
             
@@ -1873,7 +1891,7 @@
                     `<div class="warning-item">${warning}</div>`
                 ).join('');
             } else {
-                warningsContainer.innerHTML = '<div class="warning-item" style="border-color: var(--success); background: rgba(16, 185, 129, 0.1);">No clinical warnings detected</div>';
+                warningsContainer.innerHTML = '<div class="warning-item" style="border-color: var(--success); background: rgba(81, 207, 102, 0.1);">No clinical warnings detected</div>';
             }
             
             // Show results
@@ -1984,7 +2002,6 @@
                 document.getElementById('excelPrompt').style.display = 'none';
                 document.getElementById('successMessage').style.display = 'none';
                 currentFishbone = '';
-                currentStats = {};
             }
         }
 
