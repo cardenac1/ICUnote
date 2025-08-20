@@ -294,21 +294,16 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🐟 Medical Fishbone Generator</h1>
-            <p>Generate comprehensive fishbone diagrams and clinical warnings from medical data</p>
-        </div>
 
         <div class="instructions">
             <h3>📋 Instructions</h3>
             <p><strong>Copy and paste data from .lio. Below</strong></p>
-            <p>Paste your medical data including vitals, labs, intake/output, and medication information into the text area below.</p>
         </div>
 
         <div class="input-section">
             <div class="input-controls">
                 <button onclick="pasteFromClipboard()">📋 Paste from Clipboard</button>
-                <button onclick="processData()">⚡ Generate Fishbone</button>
+                <button onclick="processData()">Generate Diagram</button>
                 <button onclick="clearData()">🗑️ Clear</button>
             </div>
             <textarea id="dataInput" placeholder="Paste your medical data here...&#10;&#10;Include:&#10;- Vital signs (temperature, HR, BP, O2 sat)&#10;- Laboratory values (CBC, BMP, LFTs, etc.)&#10;- Intake and output data&#10;- Medication lists&#10;- Any other relevant clinical data"></textarea>
@@ -320,7 +315,7 @@
         </div>
 
         <div class="success-message" id="successMessage">
-            ✅ Fishbone diagram generated successfully and copied to clipboard!
+            ✅ Diagram generated successfully and copied to clipboard
         </div>
 
         <div class="results" id="results">
