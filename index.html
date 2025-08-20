@@ -3,1530 +3,2023 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Med List - Modern</title>
-<style>
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    :root {
-        --primary: #3b82f6;
-        --primary-dark: #2563eb;
-        --secondary: #06b6d4;
-        --danger: #ef4444;
-        --success: #10b981;
-        --dark-bg: #121212;
-        --card-bg: #1e1e1e;
-        --card-hover: #333333;
-        --border: #444444;
-        --text-primary: #f1f5f9;
-        --text-secondary: #94a3b8;
-        --accent-1: #00e5ff;
-        --accent-2: #f26363;
-        --accent-3: #79e89f;
-        --accent-4: #ffffff;
-        --accent-5: #ff8000;
-    }
-
-    body {
-        background-color: var(--dark-bg);
-        color: var(--text-primary);
-        font-family: monospace, monospace;
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
-    }
-
-    /* Header */
-    .header {
-        background: var(--card-bg);
-        padding: 1rem;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-        margin-bottom: 1rem;
-    }
-
-    .header-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        text-align: center;
-    }
-
-    .census {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-    }
-
-    .census-number {
-        font-size: 2rem;
-        font-weight: bold;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    /* Container */
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 1rem 2rem 1rem;
-    }
-
-    /* File Input */
-    .file-input-wrapper {
-        position: relative;
-        overflow: hidden;
-        display: inline-block;
-        cursor: pointer;
-        margin-bottom: 0.5rem;
-        width: 100%;
-    }
-
-    .file-input-wrapper input[type="file"] {
-        position: absolute;
-        left: -9999px;
-    }
-
-    .file-input-label {
-        display: block;
-        padding: 0.75rem 1.5rem;
-        background: var(--card-bg);
-        border: 2px dashed var(--primary);
-        border-radius: 0.5rem;
-        transition: all 0.3s ease;
-        text-align: center;
-        width: 100%;
-    }
-
-
-    /* Make upload button match other buttons */
-.controls .file-input-label {
-    padding: 0.75rem 1rem;
-    border: none;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    color: white;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.controls .file-input-wrapper:hover .file-input-label {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-    border: none;
-}
-
-
-    
-
-    .file-input-wrapper:hover .file-input-label {
-        background: var(--card-hover);
-        border-color: var(--secondary);
-    }
-
-    /* Controls */
-    .controls {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-        gap: 0.5rem;
-        margin-bottom: 0.5rem;
-    }
-
-    /* Buttons */
-    button {
-        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-        color: white;
-        border: none;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
-        font-size: 0.9rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        font-family: inherit;
-    }
-
-    button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
-    }
-
-    button:active {
-        transform: translateY(0);
-    }
-
-    button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    /* Select */
-    select {
-        background: var(--card-bg);
-        color: var(--text-primary);
-        border: 1px solid var(--border);
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        font-size: 0.9rem;
-        cursor: pointer;
-        font-family: inherit;
-    }
-
-    /* Hidden Elements */
-    #columnDropdown {
-        margin: 0;
-        transition: all 0.3s ease;
-    }
-
-    #columnDropdown[style*="display: none"] {
-        display: none !important;
-        height: 0 !important;
-        overflow: hidden !important;
-    }
-
-    /* Search */
-    .search-wrapper {
-        margin: 0;
-        height: 0;
-        overflow: visible;
-    }
-
-    .search-container {
-        display: flex;
-        gap: 0.5rem;
-        background: var(--card-bg);
-        padding: 0.75rem;
-        border-radius: 0.5rem;
-        margin-bottom: 0.5rem;
-        opacity: 0;
-        transform: translateY(-10px);
-        visibility: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .search-container.active {
-        opacity: 1;
-        transform: translateY(0);
-        visibility: visible;
-    }
-
-    #searchInput {
-        flex: 1;
-        padding: 0.5rem;
-        background: var(--dark-bg);
-        border: 1px solid var(--border);
-        border-radius: 0.25rem;
-        color: var(--text-primary);
-        font-size: 0.9rem;
-        font-family: inherit;
-    }
-
-    #searchInput:focus {
-        outline: none;
-        border-color: var(--primary);
-    }
-
-    /* Row List */
-    .row-list {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-
-.row-item {
-    background: var(--card-bg);
-    padding: 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: grid;
-    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;  /* Proportional widths */
-    gap: 1rem;
-    align-items: center;
-    justify-items: start;  /* Left-align all grid items */
-    font-size: 1.2rem;
-    border-left: 4px solid transparent;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    font-weight: 500;
-}
-
-    
-
-    
-
-    .row-item:hover {
-        background: var(--card-hover);
-        transform: translateX(5px);
-        border-left-color: var(--primary);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    /* Colored Text */
-    .colored-text-1 { color: var(--accent-1); }
-    .colored-text-2 { color: var(--accent-2); }
-    .colored-text-3 { color: var(--accent-3); }
-    .colored-text-4 { color: var(--accent-4); }
-    .colored-text-5 { color: var(--accent-5); }
-
-    /* Floating Action Button */
-    .fab {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        width: 56px;
-        height: 56px;
-        background: linear-gradient(135deg, var(--primary), var(--secondary));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.8rem;
-        color: white;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-        transition: all 0.3s ease;
-        z-index: 1000;
-        border: none;
-    }
-
-    .fab:hover {
-        transform: scale(1.1) rotate(90deg);
-        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
-    }
-
-    /* Column Selector */
-    .column-selector {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-        gap: 0.5rem;
-        padding: 0.5rem;
-        background: var(--dark-bg);
-        border-radius: 0.5rem;
-        margin-top: 0.5rem;
-    }
-
-    .column-button {
-        padding: 0.5rem;
-        background: var(--card-bg);
-        border: 2px solid var(--border);
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-align: center;
-        font-size: 0.9rem;
-        color: var(--text-primary);
-    }
-
-    .column-button:hover {
-        border-color: var(--primary);
-    }
-
-.column-button.selected {
-    background: var(--success);      /* Changed from var(--primary) */
-    border-color: var(--success);    /* Changed from var(--primary) */
-    color: white;
-}
-    /* Modal */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 2000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.9);
-        animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
-    }
-
-    .modal-content {
-        background: var(--card-bg);
-        margin: 5% auto;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        width: 90%;
-        max-width: 500px;
-        max-height: 80vh;
-        overflow-y: auto;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-        from {
-            transform: translateY(-50px);
-            opacity: 0;
+    <title>Medical Fishbone Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        to {
+
+        :root {
+            --primary: #ffffff;
+            --primary-dark: #e5e5e5;
+            --secondary: #a0a0a0;
+            --danger: #ff6b6b;
+            --success: #51cf66;
+            --warning: #ffd43b;
+            --dark-bg: #0d1117;
+            --card-bg: #161b22;
+            --card-hover: #21262d;
+            --border: #30363d;
+            --text-primary: #f0f6fc;
+            --text-secondary: #8b949e;
+            --accent-1: #ffd43b;
+            --accent-2: #ff6b6b;
+            --accent-3: #51cf66;
+        }
+
+        body {
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: var(--card-bg);
+            border-radius: 1rem;
+            border: 2px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .instructions {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid var(--warning);
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .instructions h3 {
+            color: var(--warning);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--card-hover), var(--border));
+            color: var(--primary);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: var(--dark-bg);
+        }
+
+        button:active {
             transform: translateY(0);
-            opacity: 1;
         }
-    }
 
-    .modal-content h2 {
-        margin-bottom: 1rem;
-        color: var(--primary);
-    }
+        button.success {
+            background: linear-gradient(135deg, var(--success), #40c057);
+            color: var(--dark-bg);
+        }
 
-    #newEntryFields {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-    }
+        button.warning {
+            background: linear-gradient(135deg, var(--warning), #fab005);
+            color: var(--dark-bg);
+        }
 
-    #newEntryFields input {
-        padding: 0.5rem;
-        background: var(--dark-bg);
-        border: 1px solid var(--border);
-        border-radius: 0.25rem;
-        color: var(--text-primary);
-        font-size: 0.9rem;
-        font-family: inherit;
-    }
+        #dataInput {
+            width: 100%;
+            min-height: 200px;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            border: 2px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
 
-    #newEntryFields input:focus {
-        outline: none;
-        border-color: var(--primary);
-    }
+        #dataInput:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+        }
 
-    /* Details View */
-    .details-view {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: var(--dark-bg);
-        z-index: 1500;
-        overflow-y: auto;
-    }
+        .results {
+            display: none;
+            margin-top: 2rem;
+        }
 
-    .details-header {
-        background: var(--card-bg);
-        padding: 1rem;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    }
+        .fishbone-section, .warnings-section {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
 
-    .sticky-text {
-        font-size: 1.5rem;
-        font-weight: bold;
-        color: var(--primary);
-    }
+        .fishbone-section h3 {
+            color: var(--accent-3);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-    #editForm {
-        padding: 1.5rem;
-        max-width: 800px;
-        margin: 0 auto;
-    }
+        .warnings-section h3 {
+            color: var(--accent-2);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-    textarea {
-        width: 100%;
-        padding: 0.75rem;
-        background: var(--card-bg);
-        color: var(--text-primary);
-        border: 1px solid var(--border);
-        border-radius: 0.25rem;
-        font-size: 1rem;
-        font-family: inherit;
-        margin: 0.5rem 0 1rem;
-        resize: none;
-        transition: all 0.3s ease;
-        overflow: hidden;  /* Add this - prevents scrollbars */
-    }
+        #fishboneOutput {
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            border: 1px solid var(--border);
+            max-height: 500px;
+            overflow-y: auto;
+        }
 
-    textarea:focus {
-        outline: none;
-        border-color: var(--primary);
-    }
+        .warning-item {
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--danger);
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+            color: var(--text-primary);
+        }
 
-    label {
-        display: block;
-        margin-top: 0.75rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-    }
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            color: var(--success);
+            display: none;
+        }
 
-    .nav-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 0.75rem;
-        margin: 1rem 0;
-        flex-wrap: wrap;
-    }
+        .excel-prompt {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 2px solid var(--accent-3);
+            text-align: center;
+            display: none;
+            margin-top: 2rem;
+            box-shadow: 0 8px 32px rgba(81, 207, 102, 0.2);
+        }
 
-    .delete-button {
-        background: linear-gradient(135deg, var(--danger), #dc2626);
-        margin: 2rem auto;
-        display: block;
-    }
-/* Mobile Responsive Styles */
-@media (max-width: 768px) {
-    body {
-        font-size: 14px;
-    }
+        .excel-prompt h3 {
+            color: var(--accent-3);
+            margin-bottom: 1rem;
+        }
 
-    .header {
-        padding: 0.75rem;
-        margin-bottom: 0.75rem;
-    }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
 
-    .header-content {
-        text-align: center; /* Ensure title is centered */
-    }
+        .spinner {
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
 
-    .census {
-        font-size: 1rem;
-    }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
-    .census-number {
-        font-size: 1.5rem;
-    }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
 
-    .container {
-        padding: 0 0.5rem 1rem 0.5rem;
-    }
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
 
-    /* File input as part of controls grid */
-    .file-input-wrapper {
-        margin-bottom: 0; /* Remove separate margin */
-    }
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-    .file-input-label {
-        padding: 0.55rem 0.4rem;
-        font-size: 0.75rem;
-        border: 1px solid var(--primary); /* Solid border instead of dashed */
-    }
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
 
-.controls button, 
-.controls select, 
-.controls .file-input-label {
-    padding: 0.55rem 0.4rem !important;
-    font-size: 0.75rem !important;
-    width: 100% !important;
-    height: 44px !important;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-    button, select {
-        padding: 0.55rem 0.4rem;
-        font-size: 0.75rem;
-        width: 100%;
-    }
-
-    .search-container {
-        flex-direction: column;
-        padding: 0.5rem;
-    }
-
-    #searchInput {
-        width: 100%;
-        padding: 0.5rem;
-        font-size: 0.8rem;
-    }
-
-    .row-item {
-        padding: 0.8rem;
-        font-size: 1rem;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
-        /* Better text clarity */
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-        font-weight: 500;
-    }
-
-    .fab {
-        bottom: 1rem;
-        right: 1rem;
-        width: 48px;
-        height: 48px;
-        font-size: 1.5rem;
-    }
-
-    .column-selector {
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .modal-content {
-        margin: 10% auto;
-        width: 95%;
-        padding: 1rem;
-    }
-
-    /* Details page - two rows of three buttons */
-    .nav-buttons {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        grid-template-rows: auto auto;
-        gap: 0.5rem;
-        margin: 1rem 0;
-    }
-
-    
-.nav-buttons button {
-    width: 100%;
-    padding: 1rem 0.5rem;      /* Increased from 0.6rem 0.3rem */
-    font-size: 0.9rem;         /* Increased from 0.75rem */
-    height: 50px;              /* Added fixed height */
-    margin: 0;
-}
-
-    /* All buttons automatically flow into the 3x2 grid */
-    .nav-buttons button:nth-child(1) { /* Previous */
-        grid-column: 1;
-        grid-row: 1;
-    }
-    
-    .nav-buttons button:nth-child(2) { /* Next */
-        grid-column: 2;
-        grid-row: 1;
-    }
-    
-    .nav-buttons button:nth-child(3) { /* Back to List */
-        grid-column: 3;
-        grid-row: 1;
-    }
-    
-    .nav-buttons button:nth-child(4) { /* Consult Note */
-        grid-column: 1;
-        grid-row: 2;
-    }
-    
-    .nav-buttons button:nth-child(5) { /* Trauma Note */
-        grid-column: 2;
-        grid-row: 2;
-    }
-    
-    .nav-buttons button:nth-child(6) { /* Delete Entry */
-        grid-column: 3;
-        grid-row: 2;
-    }
-
-.nav-buttons .delete-button {
-    background: linear-gradient(135deg, var(--danger), #dc2626);
-    margin: 0;
-    padding: 1rem 0.5rem;      /* Match other buttons */
-    font-size: 0.9rem;         /* Match other buttons */
-    height: 50px;              /* Match other buttons */
-    width: 100%;
-}
-    /* Sticky header in details view */
-    .details-header {
-        padding: 0.75rem;
-    }
-
-    .sticky-text {
-        font-size: 1.2rem;
-        text-align: center;
-    }
-
-    #editForm {
-        padding: 1rem;
-    }
-
-    textarea {
-        font-size: 0.9rem;
-        padding: 0.6rem;
-    }
-
-    label {
-        font-size: 0.8rem;
-        margin-top: 0.5rem;
-    }
-}
-.row-item {
-    display: flex !important;  /* Add !important to override grid */
-    flex-direction: column;
-    grid-template-columns: none !important;  /* Remove grid */
-    align-items: flex-start;
-    gap: 0.5rem;
-}
-    
-/* Very small screens */
-@media (max-width: 480px) {
-    .column-selector {
-        grid-template-columns: 1fr;
-    }
-    
-    /* Main page controls - 2 buttons per row on very small screens */
-    .controls {
-        grid-template-columns: 1fr 1fr;
-        gap: 0.3rem;
-    }
-
-    button, select {
-        padding: 0.5rem 0.3rem;
-        font-size: 0.7rem;
-    }
-    
-    /* Keep details page as 3 columns but with smaller spacing */
-    .nav-buttons {
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 0.3rem;
-    }
-    
-.nav-buttons button {
-    padding: 0.8rem 0.3rem;    /* Increased */
-    font-size: 0.85rem;        /* Increased */
-    height: 45px;              /* Added height */
-}
-    
-    .nav-buttons .delete-button {
-        padding: 0.5rem 0.2rem;
-        font-size: 0.7rem;
-    }
-
-    .row-item {
-        padding: 0.6rem;
-        font-size: 0.9rem;
-    }
-
-    .sticky-text {
-        font-size: 1rem;
-    }
-
-    #editForm {
-        padding: 0.75rem;
-    }
-
-    textarea {
-        font-size: 0.85rem;
-        padding: 0.5rem;
-    }
-}
-
-/* Extra small screens */
-@media (max-width: 360px) {
-    .nav-buttons button {
-        padding: 0.4rem 0.1rem;
-        font-size: 0.65rem;
-    }
-    
-    .nav-buttons .delete-button {
-        padding: 0.4rem 0.1rem;
-        font-size: 0.65rem;
-    }
-
-    button, select {
-        padding: 0.4rem 0.2rem;
-        font-size: 0.65rem;
-    }
-}
-    
-</style>
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .input-controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Header with Census -->
-    <div class="header">
-        <div class="header-content">
-            <div class="census">
-                Census: <span class="census-number" id="censusCount">0</span>
-            </div>
-        </div>
-    </div>
-
     <div class="container">
-    
-        
-
-        <!-- Controls -->
-        <div class="controls">
-            <div class="file-input-wrapper">
-            <input type="file" id="fileInput" accept=".csv">
-            <label for="fileInput" class="file-input-label">
-                📁 Upload
-            </label>
-        </div>
-            <button onclick="toggleColumnDropdown()">Column options</button>
-            <select id="columnSelect" onchange="sortRows()">
-                <option value="">Select Column to Sort</option>
-            </select>
-            <button onclick="toggleSearch()">🔍 Search</button>
-            <button onclick="resortRows()">🔄 Re-sort</button>
-            <button id="exportButtonMain" onclick="exportCSV()">📥 Export </button>
+        <div class="header">
+            <h1>🐟 Medical Fishbone Generator</h1>
+            <p>Generate comprehensive fishbone diagrams and clinical warnings from medical data</p>
         </div>
 
-        <!-- Column Dropdown -->
-        <div id="columnDropdown" style="display: none;">
-            <div id="columnSelector" class="column-selector"></div>
+        <div class="instructions">
+            <h3>📋 Instructions</h3>
+            <p><strong>Copy and paste data from .lio. Below</strong></p>
+            <p>Paste your medical data including vitals, labs, intake/output, and medication information into the text area below.</p>
         </div>
 
-        <!-- Search Container -->
-        <div class="search-wrapper">
-            <div id="searchContainer" class="search-container">
-                <input type="text" id="searchInput" placeholder="Search entries..." />
-                <button onclick="searchRows()">Search</button>
-                <button onclick="clearSearch()">Clear</button>
+        <div class="input-section">
+            <div class="input-controls">
+                <button onclick="pasteFromClipboard()">📋 Paste from Clipboard</button>
+                <button onclick="processData()">⚡ Generate Fishbone</button>
+                <button onclick="clearData()">🗑️ Clear</button>
+            </div>
+            <textarea id="dataInput" placeholder="Paste your medical data here...&#10;&#10;Include:&#10;- Vital signs (temperature, HR, BP, O2 sat)&#10;- Laboratory values (CBC, BMP, LFTs, etc.)&#10;- Intake and output data&#10;- Medication lists&#10;- Any other relevant clinical data"></textarea>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing medical data...</p>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            ✅ Fishbone diagram generated successfully and copied to clipboard!
+        </div>
+
+        <div class="results" id="results">
+            <div class="stats" id="stats">
+                <!-- Stats will be populated dynamically -->
+            </div>
+
+            <div class="fishbone-section">
+                <h3>🐟 Fishbone Diagram <button onclick="copyFishbone()" style="margin-left: auto; padding: 0.5rem 1rem; font-size: 0.8rem;">📋 Copy Fishbone</button></h3>
+                <div id="fishboneOutput"></div>
+            </div>
+
+            <div class="warnings-section">
+                <h3>⚠️ Clinical Warnings</h3>
+                <div id="warningsOutput"></div>
             </div>
         </div>
 
-        <!-- Row List -->
-        <ul class="row-list" id="rowList"></ul>
-
-        <!-- Floating Action Button -->
-        <button class="fab" onclick="showAddEntryModal()">+</button>
-
-
-
-        
-<!-- Add Entry Modal -->
-<div id="addEntryModal" class="modal">
-    <div class="modal-content">
-        <h2>Add New Entry</h2>
-        
-        <!-- Entry Type Selection -->
-        <div id="entryTypeSelection" class="nav-buttons">
-            <button type="button" onclick="showManualEntry()">✏️ Manual Entry</button>
-            <button type="button" onclick="showPasteEntry()">📋 Paste Entry</button>
-            <button type="button" onclick="closeAddEntryModal()">Cancel</button>
-        </div>
-
-        <!-- Manual Entry Form -->
-        <form id="addEntryForm" onsubmit="addEntry(event)" style="display: none;">
-            <div id="newEntryFields"></div>
-            <div class="nav-buttons">
-                <button type="submit">Save Entry</button>
-                <button type="button" onclick="backToEntrySelection()">← Back</button>
-            </div>
-        </form>
-
-        <!-- Paste Entry Form -->
-        <div id="pasteEntrySection" style="display: none;">
-            <label for="pasteTextArea">Paste Cerner patient list data:</label>
-            <textarea id="pasteTextArea" placeholder="Paste patient list here..." rows="10" style="width: 100%; margin: 0.5rem 0; font-family: monospace; font-size: 0.9rem;"></textarea>
-            <div class="nav-buttons">
-                <button type="button" onclick="processPastedEntry()">Process & Add</button>
-                <button type="button" onclick="backToEntrySelection()">← Back</button>
-            </div>
+        <div class="excel-prompt" id="excelPrompt">
+            <h3>📊 Ready for Excel</h3>
+            <p>Your fishbone diagram has been copied to clipboard.</p>
+            <p><strong>Now paste the fishbone into Excel for documentation.</strong></p>
+            <button onclick="hideExcelPrompt()">Got it!</button>
         </div>
     </div>
-</div>
-
-        
-
-        <!-- Details View -->
-        <div class="details-view" id="detailsView">
-            <div class="details-header">
-                <div id="stickyTextContainer" class="sticky-text"></div>
-            </div>
-
-            <form id="editForm"></form>
-
-            <div class="nav-buttons">
-                <button id="prevButton" onclick="navigateDetails(-1)">← Previous</button>
-                <button id="nextButton" onclick="navigateDetails(1)">Next →</button>
-                <button onclick="backToList()">Back to List</button>
-            </div>
-
-            <div class="nav-buttons">
-                <button onclick="generateNoteRTF('consult')">Consult </button>
-                <button onclick="generateNoteRTF('trauma')">Trauma </button>
-                <button class="delete-button" onclick="deleteCurrentEntry()">🗑️ Delete Entry</button>
-            </div>
-
-            
-        </div>
-    </div>
-
-    <!-- Papa Parse CDN -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
 
     <script>
-        let parsedData = [];
-        let headers = [];
-        let currentRowIndex = -1;
-        let selectedColumns = [0, 1, 2];
-        let filteredIndexes = [];
+        let currentFishbone = '';
+        let currentStats = {};
 
-        const colors = [
-            'colored-text-1', 'colored-text-2', 'colored-text-3',
-            'colored-text-4', 'colored-text-5'
-        ];
-
-        // Update census count
-        function updateCensus() {
-            document.getElementById('censusCount').textContent = parsedData.length;
-        }
-
-        document.getElementById('fileInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (file) {
-                Papa.parse(file, {
-                    complete: function(results) {
-                        parsedData = results.data.slice(1);
-                        headers = results.data[0];
-                        populateColumnSelector();
-                        populateColumnSelect();
-                        displayRows();
-                        saveCSVToLocalStorage();
-                        updateCensus();
-                    },
-                    error: function(error) {
-                        console.error('Error parsing CSV:', error);
-                    },
-                    header: false,
-                    skipEmptyLines: true
-                });
-            }
-        });
-
-        function populateColumnSelector() {
-            const columnSelector = document.getElementById('columnSelector');
-            columnSelector.innerHTML = '';
-            headers.forEach((header, colIndex) => {
-                const button = document.createElement('div');
-                button.className = 'column-button';
-                button.textContent = header;
-                if (selectedColumns.includes(colIndex)) {
-                    button.classList.add('selected');
-                }
-                button.onclick = () => toggleColumnSelection(colIndex, button);
-                columnSelector.appendChild(button);
-            });
-        }
-
-        function toggleColumnSelection(colIndex, button) {
-            if (selectedColumns.includes(colIndex)) {
-                selectedColumns = selectedColumns.filter(col => col !== colIndex);
-                button.classList.remove('selected');
-            } else {
-                selectedColumns.push(colIndex);
-                button.classList.add('selected');
-            }
-            displayRows();
-        }
-
-        function populateColumnSelect() {
-            const columnSelect = document.getElementById('columnSelect');
-            columnSelect.innerHTML = '<option value="">Select Column to Sort</option>';
-            headers.forEach((header, colIndex) => {
-                const option = document.createElement('option');
-                option.value = colIndex;
-                option.textContent = header;
-                columnSelect.appendChild(option);
-            });
-        }
-
-        function displayRows() {
-            const rowList = document.getElementById('rowList');
-            rowList.innerHTML = '';
-            parsedData.forEach((row, index) => {
-                const listItem = document.createElement('li');
-                listItem.className = 'row-item';
-                listItem.innerHTML = selectedColumns.map((colIndex, idx) => 
-                    `<span class="${colors[idx % colors.length]}">${row[colIndex] || ''}</span>`
-                ).join(' ');
-                listItem.onclick = () => showDetails(index);
-                rowList.appendChild(listItem);
-            });
-            updateCensus();
-        }
-
-        function sortRows() {
-            const columnIndex = document.getElementById('columnSelect').value;
-            if (columnIndex !== "") {
-                parsedData.sort((a, b) => {
-                    const valueA = a[columnIndex] ? a[columnIndex].toLowerCase() : "";
-                    const valueB = b[columnIndex] ? b[columnIndex].toLowerCase() : "";
-
-                    if (valueA === "" && valueB === "") return 0;
-                    if (valueA === "") return 1;
-                    if (valueB === "") return -1;
-
-                    return valueA.localeCompare(valueB);
-                });
-                displayRows();
-            }
-        }
-
-        function resortRows() {
-            const columnIndex = document.getElementById('columnSelect').value;
-            if (columnIndex !== "") {
-                parsedData.sort((a, b) => {
-                    let valueA = a[columnIndex] ? a[columnIndex].toLowerCase() : "";
-                    let valueB = b[columnIndex] ? b[columnIndex].toLowerCase() : "";
-
-                    if (valueA === "" && valueB === "") return 0;
-                    if (valueA === "") return 1;
-                    if (valueB === "") return -1;
-
-                    const numA = parseFloat(valueA);
-                    const numB = parseFloat(valueB);
-
-                    if (!isNaN(numA) && !isNaN(numB)) {
-                        return numA - numB;
-                    }
-
-                    return valueA.localeCompare(valueB);
-                });
-                displayRows();
-            }
-        }
-
-        function toggleSearch() {
-            const searchContainer = document.getElementById('searchContainer');
-            searchContainer.classList.toggle('active');
-            if (searchContainer.classList.contains('active')) {
-                document.getElementById('searchInput').focus();
-            }
-        }
-
-       
-
-function searchRows() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-    
-    if (!searchTerm) {
-        alert("Please enter a search term.");
-        return;
-    }
-
-    // Clear previous filtered indexes
-    filteredIndexes = [];
-    const filteredData = [];
-
-    // Search through each row
-    parsedData.forEach((row, index) => {
-        const matchFound = row.some(colValue => {
-            // Convert to string and check if it includes search term
-            const valueStr = (colValue || '').toString().toLowerCase();
-            return valueStr.includes(searchTerm);
-        });
-        
-        if (matchFound) {
-            filteredIndexes.push(index);
-            filteredData.push(row);
-        }
-    });
-
-    console.log('Search results:', filteredData.length, 'matches found');
-    displayFilteredRows(filteredData);
-}
-
-function displayFilteredRows(filteredData) {
-    const rowList = document.getElementById('rowList');
-    rowList.innerHTML = '';
-
-    if (filteredData.length === 0) {
-        const noResultsItem = document.createElement('li');
-        noResultsItem.className = 'row-item';
-        noResultsItem.style.textAlign = 'center';
-        noResultsItem.style.color = 'var(--text-secondary)';
-        noResultsItem.textContent = 'No results found';
-        rowList.appendChild(noResultsItem);
-    } else {
-        filteredData.forEach((row, index) => {
-            const listItem = document.createElement('li');
-            listItem.className = 'row-item';
+        // Helper function to parse date/time from medical data
+        function parseDateTime(dateTimeStr) {
+            const match = dateTimeStr.match(/\((\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\)/);
+            if (!match) return null;
             
-            // Create the colored spans
-            listItem.innerHTML = selectedColumns.map((colIndex, idx) => 
-                `<span class="${colors[idx % colors.length]}">${row[colIndex] || ''}</span>`
-            ).join(' ');
-            
-            // Use the correct index from filteredIndexes
-            const originalIndex = filteredIndexes[index];
-            listItem.onclick = () => showDetails(originalIndex);
-            
-            rowList.appendChild(listItem);
-        });
-    }
-}
-
-
-
-function clearSearch() {
-    document.getElementById('searchInput').value = '';
-    filteredIndexes = []; // Clear the filtered indexes
-    displayRows(); // Show all rows again
-    document.getElementById('searchContainer').classList.remove('active');
-}
-
-
-
-
-
-
-
-
-
-        
-
-        function showDetails(index) {
-            currentRowIndex = index;
-            const detailsView = document.getElementById('detailsView');
-            const form = document.getElementById('editForm');
-            const stickyTextContainer = document.getElementById('stickyTextContainer');
-
-            form.innerHTML = '';
-
-            const title = parsedData[index][0];
-            stickyTextContainer.textContent = title;
-
-            parsedData[index].forEach((value, colIndex) => {
-                const label = document.createElement('label');
-                label.textContent = headers[colIndex];
-
-                const textarea = document.createElement('textarea');
-                textarea.value = value || '';
-                textarea.setAttribute('data-col-index', colIndex);
-
-                form.appendChild(label);
-                form.appendChild(textarea);
-
-                textarea.addEventListener('input', function() {
-                    autoResizeTextarea(this);
-                    const colIndex = this.getAttribute('data-col-index');
-                    parsedData[currentRowIndex][colIndex] = this.value;
-                    if (colIndex == 0) {
-                        stickyTextContainer.textContent = this.value;
-                    }
-                    saveCSVToLocalStorage();
-                    displayRows();
-                });
-            });
-
-            detailsView.style.display = 'block';
-            updateNavButtons();
-
-            setTimeout(() => {
-                const textareas = form.querySelectorAll('textarea');
-                textareas.forEach(textarea => autoResizeTextarea(textarea));
-            }, 100);
+            const [_, month, day, year, hour, minute, second] = match;
+            const fullYear = 2000 + parseInt(year);
+            return new Date(fullYear, parseInt(month) - 1, parseInt(day), 
+                           parseInt(hour), parseInt(minute), parseInt(second));
         }
 
-        function autoResizeTextarea(textarea) {
-            textarea.style.height = 'auto';
-            textarea.style.height = textarea.scrollHeight + 'px';
-        }
-
-        function navigateDetails(step) {
-            const newIndex = currentRowIndex + step;
-            if (newIndex >= 0 && newIndex < parsedData.length) {
-                showDetails(newIndex);
-            }
-        }
-
-        function updateNavButtons() {
-            document.getElementById('prevButton').disabled = currentRowIndex === 0;
-            document.getElementById('nextButton').disabled = currentRowIndex === parsedData.length - 1;
-        }
-
-        function backToList() {
-            document.getElementById('detailsView').style.display = 'none';
-        }
-
-        function exportCSV() {
+        // Helper function to check if entry is within 24 hours
+        function isWithin24Hours(dateTime) {
+            if (!dateTime) return false;
             const now = new Date();
-            const formattedDate = String(now.getMonth() + 1).padStart(2, '0') + "." +
-                String(now.getDate()).padStart(2, '0') + "." +
-                String(now.getFullYear()).slice(-2);
-
-            const filename = `list_${formattedDate}.csv`;
-            const csvContent = Papa.unparse([headers, ...parsedData]);
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.setAttribute('href', URL.createObjectURL(blob));
-            link.setAttribute('download', filename);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000);
+            return dateTime >= twentyFourHoursAgo && dateTime <= now;
         }
 
-        function deleteCurrentEntry() {
-            if (currentRowIndex !== -1) {
-                const confirmDeletion = confirm("Are you sure you want to delete this entry?");
-                if (confirmDeletion) {
-                    parsedData.splice(currentRowIndex, 1);
-                    backToList();
-                    displayRows();
-                    saveCSVToLocalStorage();
+        function extractLabValues(text) {
+            const data = {
+                vitals: {},
+                labs: {},
+                dates: {},
+                times: {},
+                weight: null,
+                intake: null,
+                output: null,
+                o2therapy: null,
+                age: null
+            };
+
+            // Extract weight
+            const weightMatch = text.match(/Weight Measured:\s*([\d.]+)\s*kg/i);
+            if (weightMatch) {
+                data.weight = parseFloat(weightMatch[1]);
+            }
+
+            // Extract age
+            const ageMatch = text.match(/Age:\s*(\d+)\s*Years/i);
+            if (ageMatch) {
+                data.age = parseInt(ageMatch[1], 10);
+            }
+
+            // Helper: parse "MM/DD/YY HH:MM:SS" into a Date
+            function parseTS(dateStr, timeStr) {
+                const [mo, day, yr] = dateStr.split('/').map(n => parseInt(n, 10));
+                const [h, m, s] = timeStr.split(':').map(n => parseInt(n, 10));
+                return new Date(2000 + yr, mo - 1, day, h, m, s);
+            }
+
+            // Helper function to pick latest entry
+            function pickLatest(regex, text) {
+                const arr = [];
+                let mm;
+                while ((mm = regex.exec(text)) !== null) {
+                    arr.push({
+                        val: mm[1].trim(),
+                        ts: parseTS(mm[2], mm[3])
+                    });
+                }
+                if (!arr.length) return null;
+                arr.sort((a,b) => a.ts - b.ts);
+                return arr.pop().val;
+            }
+
+            // Oxygen Therapy
+            const o2Entries = [];
+            const o2Regex = /Oxygen Therapy:\s*(.+?)\s*\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            let m;
+            while ((m = o2Regex.exec(text)) !== null) {
+                o2Entries.push({
+                    desc: m[1].trim(),
+                    ts: parseTS(m[2], m[3])
+                });
+            }
+
+            if (o2Entries.length) {
+                o2Entries.sort((a, b) => a.ts - b.ts);
+                const latest = o2Entries.pop();
+                data.o2therapyRaw = latest.desc;
+                const rawLower = latest.desc.toLowerCase();
+
+                if (/room air/i.test(rawLower)) {
+                    data.o2therapyCode = 'RA';
+                } else if (/invasive mechanical ventilator/i.test(rawLower)) {
+                    data.o2therapyCode = 'Vent';
+                } else if (/non-invasive mechanical ventilator/i.test(rawLower) || /bipap|cpap/i.test(rawLower)) {
+                    data.o2therapyCode = 'BiPAP/CPAP';
+                } else if (/high[- ]?flow nasal cannula/i.test(rawLower)) {
+                    data.o2therapyCode = 'HFNC';
+                } else if (/nasal cannula/i.test(rawLower) && !/high[- ]?flow/i.test(rawLower)) {
+                    data.o2therapyCode = 'NC';
+                } else if (/non-?rebreather/i.test(rawLower)) {
+                    data.o2therapyCode = 'NRB';
+                } else {
+                    data.o2therapyCode = 'O2';
                 }
             }
-        }
 
-        function addEntry(event) {
-            event.preventDefault();
-            const newEntry = [];
-            const fields = document.querySelectorAll('#newEntryFields input');
-            fields.forEach((field) => {
-                newEntry.push(field.value.trim());
-                field.value = '';
-            });
-
-            if (newEntry.every((value) => value === '')) {
-                alert('Please fill out at least one field.');
-                return;
+            // Oxygen Flow Rate
+            const flowEntries = [];
+            const flowRegex = /Oxygen Flow Rate:\s*([\d.]+\s*L\/min)\s*\(\s*(\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\s*\)/gi;
+            while ((m = flowRegex.exec(text)) !== null) {
+                flowEntries.push({
+                    rate: m[1].trim(),
+                    ts: parseTS(m[2], m[3])
+                });
+            }
+            if (flowEntries.length) {
+                flowEntries.sort((a, b) => a.ts - b.ts);
+                data.o2flowRaw = flowEntries.pop().rate;
             }
 
-            parsedData.push(newEntry);
-            displayRows();
-            saveCSVToLocalStorage();
-            closeAddEntryModal();
-        }
+            // Ventilator Settings
+            data.ventModeRaw = pickLatest(/Ventilator Mode:\s*([^(]+)\s*\(\s*(\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\s*\)/gi, text);
+            data.ventFrequencyRaw = pickLatest(/Ventilator Frequency(?:,\s*Mandatory)?:\s*(\d+)\s*br\/min\s*\(\s*(\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\s*\)/gi, text);
+            data.ventTidalRaw = pickLatest(/Tidal Volume(?:,\s*Delivered)?:\s*(\d+)\s*mL\s*\(\s*(\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\s*\)/gi, text);
+            data.ventPeepRaw = pickLatest(/Positive End Expiratory Pressure:\s*(\d+)\s*cmH2O\s*\(\s*(\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\s*\)/gi, text);
+            data.ventFiO2Raw = pickLatest(/FIO2:\s*(\d+)\s*%\s*\(\s*(\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\s*\)/gi, text);
 
-        function generateNewEntryFields() {
-            const newEntryFields = document.getElementById('newEntryFields');
-            newEntryFields.innerHTML = '';
-
-            headers.forEach((header) => {
-                const input = document.createElement('input');
-                input.placeholder = header;
-                newEntryFields.appendChild(input);
-            });
-        }
-
-function showAddEntryModal() {
-    document.getElementById('addEntryModal').style.display = 'block';
-    // Show the selection screen first
-    document.getElementById('entryTypeSelection').style.display = 'block';
-    document.getElementById('addEntryForm').style.display = 'none';
-    document.getElementById('pasteEntrySection').style.display = 'none';
-}
-
-        function closeAddEntryModal() {
-            document.getElementById('addEntryModal').style.display = 'none';
-        }
-
-        function saveCSVToLocalStorage() {
-            const csvContent = Papa.unparse([headers, ...parsedData]);
-            localStorage.setItem('csvData', csvContent);
-        }
-
-        function loadCSVFromLocalStorage() {
-            const savedData = localStorage.getItem('csvData');
-            if (savedData) {
-                const results = Papa.parse(savedData, { header: false });
-                parsedData = results.data.slice(1);
-                headers = results.data[0];
-
-                populateColumnSelector();
-                populateColumnSelect();
-                displayRows();
-            }
-        }
-
-        function toggleColumnDropdown() {
-            const dropdown = document.getElementById('columnDropdown');
-            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
-        }
-
-        function generateNoteRTF(type) {
-            if (currentRowIndex === -1) {
-                alert("No patient selected.");
-                return;
-            }
-            const row = parsedData[currentRowIndex];
-            const get = (i) => (row[i] && row[i].trim()) || "";
-
-            const ageGender = get(3);
-            const cc = get(4);
-            const hpi = get(5);
-            const ros = get(6);
-            const pmh = get(7);
-            const meds = get(8);
-            const all = get(9);
-            const surghx = get(10);
-            const fsh = get(11);
-            const violin = get(12);
-            const pe = get(13);
-            const plan = get(14);
-
-            const pmhPhrase = pmh ? `with PMH ${pmh}` : "with no PMH";
-            let finalLine = `\\i Final plan pending attending approval signature.\\i0\\par`;
-
-            let noteText = "";
-
-            if (type === "consult") {
-                noteText = 
-`\\b\\ul Surgery Initial Consultation Note:\\ul0\\b0\\par\\par
-\\b\\ul CC:\\ul0\\b0  ${cc}\\par\\par
-\\b\\ul Subjective:\\ul0\\b0\\par
-HPI:  ${ageGender} ${pmhPhrase} ${hpi}\\par\\par
-ROS:  ${ros}\\par.rosgen\\par\\par
-Meds:  ${meds}\\par
-All:  ${all}\\par
-Surghx:  ${surghx}\\par
-FamHx/Sochx/HCM:  ${fsh}\\par\\par
-\\b\\ul Objective:\\ul0\\b0\\par
-Physical Exam:  ${pe}\\par.pe\\par
-Labs/imaging:  ${violin}\\par\\par
-\\b\\ul Assessment:\\ul0\\b0\\par
-${ageGender} ${pmhPhrase}, surgery consulted for ${cc}\\par\\par
-\\b\\ul Plan:\\ul0\\b0\\par
-${plan}\\par.plan\\par
-${finalLine}`;
-            } else if (type === "trauma") {
-                noteText =
-`\\b\\ul Trauma Initial Evaluation/Consult Note:\\ul0\\b0\\par\\par
-\\b\\ul Activation: \\ul0\\b0 ${cc}\\par\\par
-\\b\\ul Subjective:\\ul0\\b0\\par
-${ageGender} ${pmhPhrase} s/p ${hpi}\\par
-\\b Primary Survey:\\b0  Airway intact. b/l breath sounds present. Hemodynamically stable, palpable femoral/radial pulses, extremities wwp, GCS 15 (E4 V5 M6)\\par
-\\b Secondary Survey:\\b0  ${ros}\\par
-\\b FAST:\\b0  no intra-abdominal free fluid noted\\par
-\\b CXR:\\b0  no HTX, no PTX\\par
-\\b Pelvic XR:\\b0  no obvious fractures or dislocation\\par\\par
-\\b Meds:\\b0  ${meds}\\par
-\\b All:\\b0  ${all}\\par
-\\b Surghx:\\b0  ${surghx}\\par
-\\b FamHx/Sochx/HCM:\\b0  ${fsh}\\par\\par
-\\b\\ul Objective:\\ul0\\b0\\par
-\\b Physical Exam:\\b0  ${pe}\\par.petrauma\\par\\par
-\\b\\ul Assessment:\\ul0\\b0\\par
-${ageGender} ${pmhPhrase} s/p ${hpi}\\par
-INJURIES:\\par${violin}\\par\\par
-\\b\\ul Plan:\\ul0\\b0\\par
-${plan}\\par.plantrauma\\par
-${finalLine}`;
+            if (data.ventModeRaw && !data.o2therapyCode) {
+                data.o2therapyCode = 'Vent';
+                data.o2therapyRaw = 'Mechanical Ventilation';
             }
 
-            const now = new Date();
-            const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`;
-            const filename = type === "consult" ? `consult_note_${timestamp}.rtf` : `trauma_note_${timestamp}.rtf`;
-
-            const rtf = `{\\rtf1\\ansi\\deff0\n${noteText}}`;
-            const blob = new Blob([rtf], { type: 'application/rtf' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        // Load data on page load
-        window.onload = function() {
-            loadCSVFromLocalStorage();
-        };
-
-
-
-
-
-
-
-
-
-
-
-
-        function showManualEntry() {
-    document.getElementById('entryTypeSelection').style.display = 'none';
-    document.getElementById('addEntryForm').style.display = 'block';
-    document.getElementById('pasteEntrySection').style.display = 'none';
-    generateNewEntryFields();
-}
-
-function showPasteEntry() {
-    document.getElementById('entryTypeSelection').style.display = 'none';
-    document.getElementById('addEntryForm').style.display = 'none';
-    document.getElementById('pasteEntrySection').style.display = 'block';
-    document.getElementById('pasteTextArea').focus();
-}
-
-function backToEntrySelection() {
-    document.getElementById('entryTypeSelection').style.display = 'block';
-    document.getElementById('addEntryForm').style.display = 'none';
-    document.getElementById('pasteEntrySection').style.display = 'none';
-    document.getElementById('pasteTextArea').value = '';
-}
-
-function processPastedEntry() {
-    const pastedText = document.getElementById('pasteTextArea').value.trim();
-    
-    if (!pastedText) {
-        alert('Please paste some data first.');
-        return;
-    }
-
-    // Parse the pasted data
-    const newPatients = parseCernerData(pastedText);
-    
-    if (newPatients && newPatients.length > 0) {
-        // Add all new patients to the existing data
-        newPatients.forEach(patient => {
-            parsedData.push(patient);
-        });
-        
-        displayRows();
-        saveCSVToLocalStorage();
-        closeAddEntryModal();
-        updateCensus();
-        alert(`Successfully added ${newPatients.length} patient(s)!`);
-    } else {
-        alert('Could not parse the pasted data. Please check the format.');
-    }
-}
-
-function parseCernerData(text) {
-    const lines = text.split('\n').filter(line => line.trim());
-    const newPatients = [];
-    
-    console.log('Parsing CERNER list, total lines:', lines.length);
-    
-    lines.forEach((line, lineIndex) => {
-        // Skip header rows or empty lines
-        if (!line.trim() || line.toLowerCase().includes('patient list') || 
-            (line.toLowerCase().includes('room') && line.toLowerCase().includes('name'))) {
-            return;
-        }
-        
-        // Try tab-delimited first
-        let columns = line.split('\t');
-        
-        // Remove empty columns (common when pasting from CERNER)
-        columns = columns.filter(col => col.trim() !== '');
-        
-        console.log(`Line ${lineIndex}: Found ${columns.length} non-empty columns:`, columns);
-        
-        // If we don't have enough columns, try other delimiters
-        if (columns.length < 3) {
-            // Try multiple spaces
-            columns = line.split(/\s{2,}/).filter(col => col.trim() !== '');
-            console.log(`Line ${lineIndex}: After space split: ${columns.length} columns`);
-        }
-        
-        // If still not enough, try to parse known CERNER formats
-        if (columns.length < 3) {
-            // Pattern 1: "WMC 5NE 591 A    KRAEMER, RICHARD    1170075    ..."
-            const match1 = line.match(/^((?:WMC|[A-Z]{2,4})\s+\S+\s+\S+(?:\s+\S+)?)\s+(.*?),\s*(\S+)\s+(\d{5,})/);
-            if (match1) {
-                const room = match1[1].trim();
-                const lastName = match1[2].trim();
-                const firstName = match1[3].trim();
-                const mrn = match1[4].trim();
-                const name = `${lastName}, ${firstName}`;
-                
-                columns = [room, name, mrn];
-                console.log(`Line ${lineIndex}: Parsed using pattern 1:`, columns);
+            // Extract vitals (only from last 24 hours)
+            function isWithin24Hours(dateTimeStr) {
+                const parts = dateTimeStr.match(/(\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})/);
+                if (!parts) return false;
+                const dt = new Date(`20${parts[3]}-${parts[1]}-${parts[2]} ${parts[4]}:${parts[5]}:${parts[6]}`);
+                const now = new Date();
+                const twentyFourHoursAgo = new Date(now - 24 * 60 * 60 * 1000);
+                return dt >= twentyFourHoursAgo && dt <= now;
             }
-            
-            // Pattern 2: Room and name together, then MRN
-            if (columns.length < 3) {
-                const match2 = line.match(/^(\S+.*?)\s{2,}(\d{5,})/);
-                if (match2) {
-                    const roomAndName = match2[1].trim();
-                    const mrn = match2[2].trim();
+
+            // Extract temperature
+            const tempRegex = /Temperature\s*(?:Temporal Artery|Axillary)?:\s*([\d.]+).*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            const tempValues = [];
+            let tempMatch;
+            while ((tempMatch = tempRegex.exec(text)) !== null) {
+                const timeKey = `${tempMatch[2]} ${tempMatch[3]}`;
+                if (isWithin24Hours(timeKey)) {
+                    tempValues.push(parseFloat(tempMatch[1]));
+                }
+            }
+            if (tempValues.length > 0) {
+                data.vitals.temp = tempValues;
+            }
+
+            // Extract heart rate
+            const hrRegex = /(?:Heart Rate|Heart Rate Monitored|Apical Heart Rate).*?:\s*(\d+).*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            const hrValues = [];
+            let hrMatch;
+            while ((hrMatch = hrRegex.exec(text)) !== null) {
+                const timeKey = `${hrMatch[2]} ${hrMatch[3]}`;
+                if (isWithin24Hours(timeKey)) {
+                    hrValues.push(parseInt(hrMatch[1]));
+                }
+            }
+            if (hrValues.length > 0) {
+                data.vitals.hr = hrValues;
+            }
+
+            // Extract systolic BP
+            const sbpRegex = /Systolic Blood Pressure(?:\s+Invasive)?:\s*(\d+)\s*mmHg(?:\s+(?:Low|High))?\s*\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            const sbpValues = [];
+            let sbpMatch;
+            while ((sbpMatch = sbpRegex.exec(text)) !== null) {
+                const timeKey = `${sbpMatch[2]} ${sbpMatch[3]}`;
+                if (isWithin24Hours(timeKey)) {
+                    sbpValues.push(parseInt(sbpMatch[1]));
+                }
+            }
+            if (sbpValues.length > 0) {
+                data.vitals.sbp = sbpValues;
+            }
+
+            // Extract diastolic BP
+            const dbpRegex = /Diastolic Blood Pressure(?:\s+Invasive)?:\s*(\d+)\s*mmHg(?:\s+(?:Low|High))?\s*\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            const dbpValues = [];
+            let dbpMatch;
+            while ((dbpMatch = dbpRegex.exec(text)) !== null) {
+                const timeKey = `${dbpMatch[2]} ${dbpMatch[3]}`;
+                if (isWithin24Hours(timeKey)) {
+                    dbpValues.push(parseInt(dbpMatch[1]));
+                }
+            }
+            if (dbpValues.length > 0) {
+                data.vitals.dbp = dbpValues;
+            }
+
+            // Extract O2 saturation
+            const o2SatRegex = /O2 Saturation.*?:\s*(\d+).*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            const o2Values = [];
+            let o2Match;
+            while ((o2Match = o2SatRegex.exec(text)) !== null) {
+                const timeKey = `${o2Match[2]} ${o2Match[3]}`;
+                if (isWithin24Hours(timeKey)) {
+                    o2Values.push(parseInt(o2Match[1]));
+                }
+            }
+            if (o2Values.length > 0) {
+                data.vitals.o2 = o2Values;
+            }
+
+            // Extract lab values with dates
+            const extractLabValue = (pattern, name) => {
+                const matches = text.match(new RegExp(pattern + '.*?([\\d.]+).*?\\((\\d{2}/\\d{2}/\\d{2})\\s+(\\d{2}:\\d{2}:\\d{2})\\)', 'gi'));
+                if (matches && matches.length > 0) {
+                    const values = [];
+                    const dates = [];
+                    const times = [];
                     
-                    // Try to split room and name
-                    const roomNameMatch = roomAndName.match(/^((?:WMC|[A-Z]{2,4})\s+\S+\s+\S+(?:\s+\S+)?)\s+(.+)/);
-                    if (roomNameMatch) {
-                        columns = [roomNameMatch[1].trim(), roomNameMatch[2].trim(), mrn];
-                    } else {
-                        columns = ['', roomAndName, mrn];
+                    matches.forEach(match => {
+                        const valueMatch = match.match(/:\s*[<>]?\s*([\d.]+)/);
+                        const dateTimeMatch = match.match(/\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/);
+                        if (valueMatch) {
+                            values.push(parseFloat(valueMatch[1]));
+                            if (dateTimeMatch) {
+                                dates.push(dateTimeMatch[1]);
+                                times.push(dateTimeMatch[2]);
+                            }
+                        }
+                    });
+
+                    data.labs[name] = values;
+                    if (dates.length > 0) {
+                        data.dates[name] = dates[0];
+                        data.times[name] = times[0];
                     }
-                    console.log(`Line ${lineIndex}: Parsed using pattern 2:`, columns);
+                }
+            };
+
+            // Extract all lab values
+            extractLabValue('WBC:', 'wbc');
+            extractLabValue('Hgb:', 'hgb');
+            extractLabValue('Hct:', 'hct');
+            extractLabValue('Platelet Count:', 'plt');
+            extractLabValue('Sodium:', 'na');
+            extractLabValue('Potassium:', 'k');
+            extractLabValue('Chloride:', 'cl');
+            extractLabValue('CO2:', 'co2');
+            extractLabValue('BUN:', 'bun');
+            extractLabValue('Creatinine:', 'cr');
+            extractLabValue('Glucose:', 'glu');
+            extractLabValue('Calcium, Ionized:', 'ca');
+            extractLabValue('Ionized Calcium:', 'ca');
+            
+            // If no ionized calcium, try total calcium
+            if (!data.labs.ca || data.labs.ca.length === 0) {
+                extractLabValue('Calcium:', 'totalCa');
+                extractLabValue('Albumin:', 'albumin');
+                
+                if (data.labs.totalCa && data.labs.totalCa.length > 0 && 
+                    data.labs.albumin && data.labs.albumin.length > 0) {
+                    const totalCa = data.labs.totalCa[0];
+                    const albumin = data.labs.albumin[0];
+                    const correctedCa = totalCa + 0.8 * (4.0 - albumin);
+                    data.labs.ca = [parseFloat(correctedCa.toFixed(2))];
+                    data.labs.caType = 'corrected';
+                    if (data.dates.totalCa) {
+                        data.dates.ca = data.dates.totalCa;
+                        data.times.ca = data.times.totalCa;
+                    }
                 }
             }
-        }
-        
-        // Validate we have at least name and MRN
-        if (columns.length >= 2) {
-            let room = '';
-            let name = '';
-            let mrn = '';
-            let att = '';
             
-            // Try to identify columns by content
-            columns.forEach((col, idx) => {
-                const trimmed = col.trim();
+            extractLabValue('Magnesium Level:', 'mg');
+            extractLabValue('Inorganic Phosphorus:', 'phos');
+            extractLabValue('pH:', 'ph');
+            extractLabValue('pC02:', 'pco2');
+            extractLabValue('PO2:', 'po2');
+            extractLabValue('Bicarbonate:', 'bicarb');
+            extractLabValue('Lactic Acid:', 'lactate');
+            extractLabValue('AST:', 'ast');
+            extractLabValue('ALT:', 'alt');
+            extractLabValue('Total Bilirubin:', 'tbil');
+            extractLabValue('Direct Bilirubin:', 'dbil');
+            extractLabValue('Alkaline Phosphatase:', 'alk');
+            extractLabValue('GGT:', 'ggt');
+            extractLabValue('Prothrombin Time:', 'pt');
+            extractLabValue('INR:', 'inr');
+            extractLabValue('APTT:', 'ptt');
+            extractLabValue('Fibrinogen:', 'fib');
+            extractLabValue('Troponin I, High Sensitivity:', 'trop');
+            extractLabValue('Amylase:', 'amylase');
+            extractLabValue('Lipase:', 'lipase');
+
+            return data;
+        }
+
+        function extractIntakeOutputData(text) {
+            const ioData = {
+                intakes: {
+                    enteral: [],
+                    bloodProducts: [],
+                    other: []
+                },
+                outputs: {
+                    urine: [],
+                    urinaryCatheter: false,
+                    lastUrineTime: null,
+                    drains: {},
+                    other: {}
+                },
+                counts: {},
+                elapsedHours: null,
+                cutoffTime: null,
+                totalIntake: null,
+                totalOutput: null,
+                fluidBalance: null
+            };
+
+            // Extract intake/output section
+            const ioMatch = text.match(/<Intake and Output Start>([\s\S]*?)<Intake and Output End>/i);
+            if (!ioMatch) {
+                return ioData;
+            }
+            
+            const ioText = ioMatch[1];
+            
+            // Split into intake and output sections
+            const intakeMatch = ioText.match(/Intake\s*\n([\s\S]*?)(?=Output|$)/i);
+            const outputMatch = ioText.match(/Output\s*\n([\s\S]*?)$/i);
+            
+            const intakeSection = intakeMatch ? intakeMatch[1] : '';
+            const outputSection = outputMatch ? outputMatch[1] : '';
+
+            // Get current time and calculate 7 AM cutoff
+            const now = new Date();
+            const currentHour = now.getHours();
+            const cutoffDate = new Date(now);
+            
+            if (currentHour < 7) {
+                cutoffDate.setDate(cutoffDate.getDate() - 1);
+            }
+            cutoffDate.setHours(7, 0, 0, 0);
+
+            // Helper function to parse date/time
+            function parseDateTime(dateTimeStr) {
+                const match = dateTimeStr.match(/\((\d{2})\/(\d{2})\/(\d{2})\s+(\d{2}):(\d{2}):(\d{2})\)/);
+                if (!match) return null;
                 
-                // MRN is usually 5-10 digits
-                if (/^\d{5,10}$/.test(trimmed) && !mrn) {
-                    mrn = trimmed;
+                const [_, month, day, year, hour, minute, second] = match;
+                const fullYear = 2000 + parseInt(year);
+                return new Date(fullYear, parseInt(month) - 1, parseInt(day), 
+                               parseInt(hour), parseInt(minute), parseInt(second));
+            }
+
+            // Helper function to check if entry is within time window
+            function isWithinTimeWindow(dateTime) {
+                if (!dateTime) return false;
+                return dateTime >= cutoffDate && dateTime <= now;
+            }
+
+            // Process intake entries
+            if (intakeSection && !intakeSection.includes('No qualifying data available')) {
+                const intakeLines = intakeSection.split('\n').filter(line => line.trim());
+                
+                intakeLines.forEach(line => {
+                    if (line.trim() === '') return;
+                    
+                    const dateTime = parseDateTime(line);
+                    if (!isWithinTimeWindow(dateTime)) return;
+                    
+                    const volumeMatch = line.match(/:\s*(\d+)\s*mL/);
+                    if (!volumeMatch) return;
+                    
+                    const volume = parseInt(volumeMatch[1]);
+                    const entry = {
+                        description: line.split(':')[0].trim(),
+                        volume: volume,
+                        dateTime: dateTime,
+                        dateTimeStr: line.match(/\(([^)]+)\)/)[1]
+                    };
+                    
+                    // Categorize intake
+                    if (line.toLowerCase().includes('enteral') || 
+                        line.toLowerCase().includes('tube feed') ||
+                        line.toLowerCase().includes('feeding tube') ||
+                        line.toLowerCase().includes('nasogastric') ||
+                        line.toLowerCase().includes('ng tube') ||
+                        line.toLowerCase().includes('peg') ||
+                        line.toLowerCase().includes('jejunostomy')) {
+                        ioData.intakes.enteral.push(entry);
+                    } else if (line.toLowerCase().includes('blood') || 
+                               line.toLowerCase().includes('red blood cells') ||
+                               line.toLowerCase().includes('packed cells') ||
+                               line.toLowerCase().includes('plasma') || 
+                               line.toLowerCase().includes('platelets') ||
+                               line.toLowerCase().includes('fresh frozen') ||
+                               line.toLowerCase().includes('cryoprecipitate') ||
+                               line.toLowerCase().includes('albumin')) {
+                        ioData.intakes.bloodProducts.push(entry);
+                    } else {
+                        ioData.intakes.other.push(entry);
+                    }
+                });
+            }
+
+            // Process output entries
+            if (outputSection) {
+                const outputLines = outputSection.split('\n').filter(l => l.trim());
+                outputLines.forEach(rawLine => {
+                    let line = rawLine.trim();
+                    line = line.replace(/^#\d+\s*/, '');
+                    if (/^output$/i.test(line) && !line.includes(':')) return;
+                    const dateTime = parseDateTime(line);
+                    if (!isWithinTimeWindow(dateTime)) return;
+                    const volumeMatch = line.match(/:\s*(\d+)\s*mL/i);
+                    if (!volumeMatch) return;
+                    const volume = +volumeMatch[1];
+                    const dateTimeStr = (line.match(/\(([^)]+)\)/) || [,''])[1];
+                    
+                    let description = '';
+                    if (/Other:/i.test(line)) {
+                        const m = line.match(/Other:\s*([^:-]+?)(?:\s*-\s*|:)/i);
+                        description = m ? m[1].trim() : '';
+                    } else {
+                        description = line.split(':')[0].trim();
+                    }
+                    const entry = { description, volume, dateTime, dateTimeStr };
+                    
+                    if (/urinary catheter/i.test(line) || /straight cath/i.test(line) ||
+                        /urine output/i.test(line) || /void/i.test(line)) {
+                        ioData.outputs.urine.push(entry);
+                        if (/catheter/i.test(line)) ioData.outputs.urinaryCatheter = true;
+                        if (!ioData.outputs.lastUrineTime || dateTime > ioData.outputs.lastUrineTime) {
+                            ioData.outputs.lastUrineTime = dateTime;
+                            ioData.outputs.lastUrineTimeStr = dateTimeStr;
+                        }
+                    } else if (/estimated blood loss/i.test(line)) {
+                        ioData.outputs.other['Estimated Blood Loss'] = 
+                            ioData.outputs.other['Estimated Blood Loss'] || [];
+                        ioData.outputs.other['Estimated Blood Loss'].push(entry);
+                    } else if (/drain/i.test(description) || /jp/i.test(description)) {
+                        ioData.outputs.drains[description] = 
+                            ioData.outputs.drains[description] || [];
+                        ioData.outputs.drains[description].push(entry);
+                    } else {
+                        const key = description || 'Other Output';
+                        ioData.outputs.other[key] = ioData.outputs.other[key] || [];
+                        ioData.outputs.other[key].push(entry);
+                    }
+                });
+            }
+
+            // Process count entries
+            const countData = {};
+            if (outputSection) {
+                const countRegex = /(Stool Count|Urine Count|Vomit Count|.*?Count):\s*(\d+)\s*\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+                let countMatch;
+                while ((countMatch = countRegex.exec(outputSection)) !== null) {
+                    const countType = countMatch[1];
+                    const count = parseInt(countMatch[2]);
+                    const dateTime = parseDateTime(`(${countMatch[3]} ${countMatch[4]})`);
+                    
+                    if (isWithinTimeWindow(dateTime)) {
+                        if (!countData[countType]) {
+                            countData[countType] = [];
+                        }
+                        countData[countType].push({
+                            count: count,
+                            dateTime: dateTime,
+                            dateTimeStr: `${countMatch[3]} ${countMatch[4]}`
+                        });
+                    }
                 }
-                // Room usually starts with unit code
-                else if (/^(WMC|ICU|CCU|[A-Z]{2,4})\s+/.test(trimmed) && !room) {
-                    room = trimmed;
+            }
+
+            ioData.counts = countData;
+
+            // Calculate elapsed time
+            const elapsedMs = now - cutoffDate;
+            const elapsedHours = elapsedMs / (1000 * 60 * 60);
+            ioData.elapsedHours = elapsedHours;
+            ioData.cutoffTime = cutoffDate;
+
+            return ioData;
+        }
+
+        function generateWarnings(data) {
+            const warnings = [];
+            const currentDate = new Date().toLocaleDateString('en-US', { 
+                month: '2-digit', 
+                day: '2-digit', 
+                year: '2-digit' 
+            });
+            
+            // Check for date mismatches by category
+            const dateCategories = {
+                'CBC': ['wbc', 'hgb', 'hct', 'plt'],
+                'CMP': ['na', 'k', 'cl', 'co2', 'bun', 'cr', 'glu', 'ca', 'mg', 'phos'],
+                'LFTs': ['ast', 'alt', 'tbil', 'dbil', 'alk', 'ggt'],
+                'Coags': ['pt', 'ptt', 'inr', 'fib'],
+                'ABG': ['ph', 'po2', 'pco2', 'bicarb', 'lactate']
+            };
+            
+            // Check each category for outdated values
+            for (const [category, labs] of Object.entries(dateCategories)) {
+                let outdated = false;
+                let lastDate = '';
+                
+                for (const lab of labs) {
+                    if (data.dates[lab] && data.dates[lab] !== currentDate) {
+                        outdated = true;
+                        lastDate = data.dates[lab];
+                        break;
+                    }
                 }
-                // Name usually contains comma
-                else if (trimmed.includes(',') && !name) {
-                    name = trimmed;
+                
+                if (outdated) {
+                    let labTime = '';
+                    for (const lab of labs) {
+                        if (data.times && data.times[lab]) {
+                            labTime = data.times[lab];
+                            break;
+                        }
+                    }
+                    if (labTime) {
+                        warnings.push(`Last ${category} from ${lastDate} ${labTime}!!`);
+                    } else {
+                        warnings.push(`Last ${category} from ${lastDate}!!`);
+                    }
                 }
-                // Attending often contains "MD" or "MBBS" or "DO"
-                else if ((trimmed.includes('MD') || trimmed.includes('MBBS') || 
-                         trimmed.includes('DO') || trimmed.includes('Dr')) && !att) {
-                    att = trimmed;
+            }
+            
+            // Sodium check
+            if (data.labs.na && data.labs.na[0] !== undefined) {
+                const na = data.labs.na[0];
+                const naPrev = data.labs.na[1];
+                const naStr = naPrev !== undefined ? `*${na}* (*${naPrev}*)` : `*${na}*`;
+                
+                if (na < 135) {
+                    warnings.push(`Hyponatremic! 1L FWR, Salt tabs 2g BID, Na: ${naStr}`);
+                } else if (na > 145) {
+                    warnings.push(`Hypernatremic! Na: ${naStr} -> FWB/D5W/0.45 NS`);
                 }
-                // If we have room and MRN but no name yet, this might be name
-                else if (room && mrn && !name) {
-                    name = trimmed;
+            } else {
+                warnings.push('no Na');
+            }
+            
+            // Potassium check
+            if (data.labs.k && data.labs.k[0] !== undefined) {
+                const k = data.labs.k[0];
+                const kPrev = data.labs.k[1];
+                const kStr = kPrev !== undefined ? `*${k}* (*${kPrev}*)` : `*${k}*`;
+                
+                if (k >= 3.3 && k <= 3.9) {
+                    warnings.push(`Give 40 meq K PO or IV, K=${kStr}`);
+                } else if (k >= 3 && k <= 3.2) {
+                    warnings.push(`Give 60 meq K IV, K=${kStr}`);
+                } else if (k >= 2.6 && k <= 2.9) {
+                    warnings.push(`Give 80 meq K IV and NHO, K=${kStr}`);
+                } else if (k > 0 && k <= 2.6) {
+                    warnings.push(`Give 100 meq K and NHO, K=${kStr}`);
+                } else if (k > 5) {
+                    warnings.push(`Hyperkalemic!!, K=${kStr}`);
+                }
+            } else {
+                warnings.push('No K');
+            }
+            
+            // Calcium check
+            if (data.labs.ca && data.labs.ca[0] !== undefined) {
+                const ca = data.labs.ca[0];
+                const caPrev = data.labs.ca[1];
+                const caType = data.labs.caType;
+                const isIonized = ca < 7 && !caType;
+                
+                if (isIonized) {
+                    const caStr = caPrev !== undefined ? `*${ca}* (*${caPrev}*)` : `*${ca}*`;
+                    if (ca >= 3.5 && ca < 4) {
+                        warnings.push(`Give 4g calcium gluconate, 2g/hr, iCa=${caStr}`);
+                    } else if (ca >= 3 && ca <= 3.4) {
+                        warnings.push(`Give 6g calcium gluconate 2g/hr, iCa=${caStr}`);
+                    } else if (ca >= 2.5 && ca <= 2.9) {
+                        warnings.push(`Give 8g calcium gluconate 2g/hr, iCa=${caStr}`);
+                    } else if (ca > 0 && ca < 2.5) {
+                        warnings.push(`Give 10g calcium gluconate 2g/hr, notify senior! iCa=${caStr}`);
+                    } else if (ca > 5.3) {
+                        warnings.push(`Hypercalcemia! iCa=${caStr}`);
+                    }
+                } else {
+                    const caLabel = caType === 'corrected' ? 'Corrected Ca' : 'Total Ca';
+                    const caStr = caPrev !== undefined ? `*${ca}* (*${caPrev}*)` : `*${ca}*`;
+                    
+                    if (ca < 8.5) {
+                        if (ca >= 8.0 && ca < 8.5) {
+                            warnings.push(`Mild hypocalcemia: ${caLabel}=${caStr}`);
+                        } else if (ca >= 7.0 && ca < 8.0) {
+                            warnings.push(`Moderate hypocalcemia: ${caLabel}=${caStr}, give calcium`);
+                        } else if (ca < 7.0) {
+                            warnings.push(`Severe hypocalcemia: ${caLabel}=${caStr}, give IV calcium!`);
+                        }
+                    } else if (ca > 10.2) {
+                        if (ca > 10.2 && ca <= 11.5) {
+                            warnings.push(`Mild hypercalcemia: ${caLabel}=${caStr}`);
+                        } else if (ca > 11.5 && ca <= 13.0) {
+                            warnings.push(`Moderate hypercalcemia: ${caLabel}=${caStr}`);
+                        } else if (ca > 13.0) {
+                            warnings.push(`Severe hypercalcemia: ${caLabel}=${caStr}, urgent treatment!`);
+                        }
+                    }
+                }
+            } else {
+                warnings.push('Calcium not found');
+            }
+            
+            // Magnesium check
+            if (data.labs.mg && data.labs.mg[0] !== undefined) {
+                const mg = data.labs.mg[0];
+                const mgPrev = data.labs.mg[1];
+                const mgStr = mgPrev !== undefined ? `*${mg}* (*${mgPrev}*)` : `*${mg}*`;
+                
+                if (mg >= 1.6 && mg <= 1.9) {
+                    warnings.push(`Give 4g mag sulfate IV/2hr@2g/hr, Mg: ${mgStr}`);
+                } else if (mg >= 1 && mg <= 1.5) {
+                    warnings.push(`Give 6g mag sulfate IV/3hr@2g/hr, Mg: ${mgStr}`);
+                } else if (mg > 0 && mg <= 1) {
+                    warnings.push(`Give 8g mag sulfate IV/4hr@2g/hr, Mg: ${mgStr}`);
+                }
+            } else {
+                warnings.push('No mag');
+            }
+            
+            // Phosphorus check
+            if (data.labs.phos && data.labs.phos[0] !== undefined) {
+                const p = data.labs.phos[0];
+                const pPrev = data.labs.phos[1];
+                const pStr = pPrev !== undefined ? `*${p}* (*${pPrev}*)` : `*${p}*`;
+                
+                if (p >= 2 && p < 2.5) {
+                    warnings.push(`Give 15 mmol phos (22.5 Meq K IV), P=${pStr}`);
+                } else if (p >= 1.6 && p <= 1.9) {
+                    warnings.push(`Give 30 mmol phos (45 Meq K IV), P=${pStr}`);
+                } else if (p > 0 && p <= 1.6) {
+                    warnings.push(`Give 40 mmol phos (60 Meq K IV), P=${pStr}`);
+                }
+            }
+            
+            return warnings;
+        }
+
+        function generateIntakeOutputWarnings(ioData, weight) {
+            const warnings = [];
+            
+            // Get elapsed hours and cutoff time
+            const elapsedHours = ioData.elapsedHours || 24;
+            const elapsedHoursDisplay = Math.round(elapsedHours);
+            const cutoffTime = ioData.cutoffTime || new Date();
+            
+            // Format cutoff time for display
+            const cutoffStr = cutoffTime.toLocaleString('en-US', {
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // Check urine output
+            if (ioData.outputs.urine.length > 0) {
+                const totalUrine = ioData.outputs.urine.reduce((sum, entry) => sum + entry.volume, 0);
+                const hourlyOutput = Math.round(totalUrine / elapsedHours);
+                
+                if (weight) {
+                    const urinePerKgHr = (hourlyOutput / weight).toFixed(2);
+                    
+                    if (urinePerKgHr < 0.1) {
+                        warnings.push(`*ANURIA!* ${urinePerKgHr} mL/kg/hr - total *${totalUrine} mL* in ${elapsedHoursDisplay}hr - last: ${ioData.outputs.lastUrineTimeStr}`);
+                    } else if (urinePerKgHr < 0.5) {
+                        warnings.push(`LOW URINE OUTPUT! ${urinePerKgHr} mL/kg/hr, expected: ≥0.5 mL/kg/hr - total *${totalUrine} mL* in ${elapsedHoursDisplay}hr - last: ${ioData.outputs.lastUrineTimeStr}`);
+                    } else {
+                        warnings.push(`Urine output: (${urinePerKgHr} mL/kg/hr) - total ${totalUrine} mL in ${elapsedHoursDisplay}hr - last: ${ioData.outputs.lastUrineTimeStr}`);
+                    }
+                } else {
+                    warnings.push(`Urine output: total ${totalUrine} mL in ${elapsedHoursDisplay}hr - last: ${ioData.outputs.lastUrineTimeStr} (no weight available)`);
+                }
+                
+                if (ioData.outputs.urinaryCatheter) {
+                    warnings.push(`*Has urinary catheter*`);
+                }
+            } else {
+                warnings.push(`*No urine output recorded since ${cutoffStr}!*`);
+            }
+
+            // Check drains
+            Object.entries(ioData.outputs.drains).forEach(([drainType, entries]) => {
+                if (entries.length > 0) {
+                    const total = entries.reduce((sum, entry) => sum + entry.volume, 0);
+                    const latest = entries.sort((a, b) => b.dateTime - a.dateTime)[0];
+                    
+                    if (total > (30 * elapsedHours)) {
+                        warnings.push(`${drainType}: *${total} mL* (HIGH OUTPUT) in ${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}`);
+                    } else {
+                        warnings.push(`${drainType}: ${total} mL in ${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}`);
+                    }
                 }
             });
             
-            // If we still don't have a name but have other fields, use what we have
-            if (!name && columns.length > 0) {
-                name = columns.find(c => c.trim() && !c.match(/^\d+$/) && c !== room) || 'Unknown';
+            // Check blood loss
+            if (ioData.outputs.other['Estimated Blood Loss']) {
+                const bloodLoss = ioData.outputs.other['Estimated Blood Loss'];
+                const total = bloodLoss.reduce((sum, entry) => sum + entry.volume, 0);
+                
+                warnings.push(`*Estimated Blood Loss: ${total} mL* in ${elapsedHoursDisplay}hr`);
             }
             
-            console.log(`Line ${lineIndex}: Final parsed - Room: ${room}, Name: ${name}, MRN: ${mrn}`);
-            
-            // Only add if we have at least name
-            if (name) {
-                // Create row array matching your CSV structure
-                // Based on your headers: ['Name', 'RM', 'MRN', 'Att', 'Problems', 'ICS', 'VIOLIN', 'ORDERS', 'To do', 'Priority']
-                const patientRow = [
-                    name,           // Name
-                    room || 'TBD',  // RM
-                    mrn || '',      // MRN
-                    att || '',      // Att
-                    '',             // Problems
-                    '',             // ICS
-                    '',             // VIOLIN
-                    '',             // ORDERS
-                    '',             // To do
-                    ''              // Priority
-                ];
+            // Check intakes
+            if (ioData.intakes.enteral.length > 0) {
+                const totalEnteral = ioData.intakes.enteral.reduce((sum, entry) => sum + entry.volume, 0);
+                const hourlyEnteral = Math.round(totalEnteral / elapsedHours);
+                const latestEnteral = ioData.intakes.enteral.sort((a, b) => b.dateTime - a.dateTime)[0];
                 
-                newPatients.push(patientRow);
+                if (weight) {
+                    const enteralPerKgHr = (hourlyEnteral / weight).toFixed(2);
+                    warnings.push(`*Enteral feeding: ${hourlyEnteral} mL/hr* (${enteralPerKgHr} mL/kg/hr) - total ${totalEnteral} mL in ${elapsedHoursDisplay}hr - last: ${latestEnteral.dateTimeStr}`);
+                } else {
+                    warnings.push(`*Enteral feeding: ${hourlyEnteral} mL/hr* - total ${totalEnteral} mL in ${elapsedHoursDisplay}hr - last: ${latestEnteral.dateTimeStr}`);
+                }
+            }
+            
+            // Check blood products
+            if (ioData.intakes.bloodProducts.length > 0) {
+                const totalBlood = ioData.intakes.bloodProducts.reduce((sum, entry) => sum + entry.volume, 0);
+                const latestBlood = ioData.intakes.bloodProducts.sort((a, b) => b.dateTime - a.dateTime)[0];
+                warnings.push(`*Blood products: ${totalBlood} mL* in ${elapsedHoursDisplay}hr - last: ${latestBlood.dateTimeStr}`);
+            }
+            
+            // Check if no intake at all
+            if (ioData.intakes.enteral.length === 0 && 
+                ioData.intakes.bloodProducts.length === 0 && 
+                ioData.intakes.other.length === 0) {
+                warnings.push(`*No intake recorded since ${cutoffStr}* (${elapsedHoursDisplay}hr)`);
+            }
+            
+            // Check other outputs
+            Object.entries(ioData.outputs.other).forEach(([outputType, entries]) => {
+                if (outputType !== 'Estimated Blood Loss' && entries.length > 0) {
+                    const total = entries.reduce((sum, entry) => sum + entry.volume, 0);
+                    const latest = entries.sort((a, b) => b.dateTime - a.dateTime)[0];
+                    
+                    warnings.push(`${outputType}: ${total} mL in ${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}`);
+                }
+            });
+
+            // Check counts
+            Object.entries(ioData.counts || {}).forEach(([countType, entries]) => {
+                if (entries.length > 0) {
+                    const totalCount = entries.reduce((sum, entry) => sum + entry.count, 0);
+                    const latest = entries.sort((a, b) => b.dateTime - a.dateTime)[0];
+                    
+                    if (countType.toLowerCase().includes('stool') && totalCount > 3) {
+                        warnings.push(`*${countType} Total: ${totalCount}* in ${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}`);
+                    } else if (countType.toLowerCase().includes('vomit') && totalCount > 0) {
+                        warnings.push(`*${countType} Total: ${totalCount}* in ${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}`);
+                    } else {
+                        warnings.push(`${countType} Total: ${totalCount} in ${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}`);
+                    }
+                }
+            });
+            
+            return warnings;
+        }
+
+        function generateFishbone(data) {
+            let fishbone = '';
+            
+            // Helper function to wrap abnormal values
+            const markAbnormal = (value) => `*${value}*`;
+            
+            // VITALS SECTION
+            if (data.vitals.temp && data.vitals.temp.length > 0) {
+                const tempMin = Math.min(...data.vitals.temp).toFixed(1);
+                const tempMax = Math.max(...data.vitals.temp).toFixed(1);
+                const tempAvg = (data.vitals.temp.reduce((a, b) => a + b, 0) / data.vitals.temp.length).toFixed(1);
+                
+                const hadFever = data.vitals.temp.some(t => t > 38);
+                const hadHypothermia = data.vitals.temp.some(t => t < 35);
+                
+                if (hadFever || hadHypothermia) {
+                    fishbone += `T ${markAbnormal(`${tempMin}-${tempMax}`)} (${tempAvg}), `;
+                } else {
+                    fishbone += `T ${tempMin}-${tempMax} (${tempAvg}), `;
+                }
+            } else {
+                fishbone += 'no T, ';
+            }
+            
+            if (data.vitals.hr && data.vitals.hr.length > 0) {
+                const hrMin = Math.min(...data.vitals.hr);
+                const hrMax = Math.max(...data.vitals.hr);
+                const hrAvg = Math.round(data.vitals.hr.reduce((a, b) => a + b, 0) / data.vitals.hr.length);
+                
+                const hadTachycardia = data.vitals.hr.some(hr => hr > 100);
+                const hadBradycardia = data.vitals.hr.some(hr => hr < 60);
+                
+                if (hadTachycardia || hadBradycardia) {
+                    fishbone += `HR ${markAbnormal(`${hrMin}-${hrMax}`)}(${hrAvg}), `;
+                } else {
+                    fishbone += `HR ${hrMin}-${hrMax}(${hrAvg}), `;
+                }
+            } else {
+                fishbone += 'no HR, ';
+            }
+
+            // Handle SBP and DBP separately
+            if (data.vitals.sbp && data.vitals.sbp.length > 0) {
+                const sbpMin = Math.min(...data.vitals.sbp);
+                const sbpMax = Math.max(...data.vitals.sbp);
+                const sbpAvg = Math.round(data.vitals.sbp.reduce((a, b) => a + b, 0) / data.vitals.sbp.length);
+                
+                const hadHypotension = data.vitals.sbp.some(sbp => sbp < 90);
+                const hadHypertension = data.vitals.sbp.some(sbp => sbp > 180);
+                
+                if (hadHypotension || hadHypertension) {
+                    fishbone += `SBP ${markAbnormal(`${sbpMin}-${sbpMax}`)} (${sbpAvg}), `;
+                } else {
+                    fishbone += `SBP ${sbpMin}-${sbpMax} (${sbpAvg}), `;
+                }
+            } else {
+                fishbone += 'no SBP, ';
+            }
+
+            if (data.vitals.dbp && data.vitals.dbp.length > 0) {
+                const dbpMin = Math.min(...data.vitals.dbp);
+                const dbpMax = Math.max(...data.vitals.dbp);
+                const dbpAvg = Math.round(data.vitals.dbp.reduce((a, b) => a + b, 0) / data.vitals.dbp.length);
+                
+                const hadDiastolicHypertension = data.vitals.dbp.some(dbp => dbp > 120);
+                const hadDiastolicHypotension = data.vitals.dbp.some(dbp => dbp < 60);
+                
+                if (hadDiastolicHypertension || hadDiastolicHypotension) {
+                    fishbone += `DBP ${markAbnormal(`${dbpMin}-${dbpMax}`)} (${dbpAvg}) `;
+                } else {
+                    fishbone += `DBP ${dbpMin}-${dbpMax} (${dbpAvg}) `;
+                }
+            } else {
+                fishbone += 'no DBP ';
+            }
+
+            // O2 saturation with therapy
+            if (data.vitals.o2 && data.vitals.o2.length > 0) {
+                const o2Min = Math.min(...data.vitals.o2);
+                const o2Max = Math.max(...data.vitals.o2);
+                
+                const hadHypoxia = data.vitals.o2.some(o2 => o2 < 94);
+                
+                if (hadHypoxia) {
+                    fishbone += `O2 ${markAbnormal(`${o2Min}-${o2Max}`)}`;
+                } else {
+                    fishbone += `O2 ${o2Min}-${o2Max}`;
+                }
+                
+                if (data.o2therapyCode && data.o2therapyCode !== 'RA') {
+                    fishbone += `-${markAbnormal(data.o2therapyCode)}`;
+                    if (data.o2flowRaw && data.o2therapyCode !== 'Vent') {
+                        fishbone += `@${data.o2flowRaw}`;
+                    }
+                }
+
+            } else if (data.o2therapyCode) {
+                if (data.o2therapyCode === 'RA') {
+                    fishbone += `O2: ${data.o2therapyCode}`;
+                } else {
+                    fishbone += `O2: ${markAbnormal(data.o2therapyCode)}`;
+                    if (data.o2flowRaw && data.o2therapyCode !== 'Vent') {
+                        fishbone += `@${data.o2flowRaw}`;
+                    }
+                }
+            } else {
+                fishbone += 'no O2';
+            }
+
+            fishbone += '\n';
+
+            // OXYGEN THERAPY DETAILS
+            if (data.o2therapyCode === 'Vent') {
+                const mode = data.ventModeRaw ? data.ventModeRaw.replace(/[\s\/\+]+/g,'') : '';
+                const freq = data.ventFrequencyRaw || '';
+                const tv = data.ventTidalRaw || '';
+                const peep = data.ventPeepRaw || '';
+                const fio2 = data.ventFiO2Raw || '';
+                const settings = [freq, tv, peep, fio2 ? fio2 + '%' : ''].filter(x => x).join('/');
+                fishbone += `${markAbnormal(`Ventilator: ${mode} ${settings}`)}\n`;
+            }
+
+            // INTAKE/OUTPUT SECTION
+            const text = document.getElementById('dataInput').value;
+            if (text) {
+                const ioData = extractIntakeOutputData(text);
+                const elapsedHours = ioData.elapsedHours || 24;
+                const elapsedHoursDisplay = Math.round(elapsedHours);
+                
+                // Get total intake from the summary section
+                let totalIntake = 0;
+                const intakeSummaryMatch = text.match(/Total\s+Summary[\s\S]*?Intake\s+mL\s+([\d,]+(?:\.\d+)?)/i);
+                if (intakeSummaryMatch) {
+                    totalIntake = parseFloat(intakeSummaryMatch[1].replace(/,/g, ''));
+                } else {
+                    totalIntake += ioData.intakes.enteral.reduce((sum, entry) => sum + entry.volume, 0);
+                    totalIntake += ioData.intakes.bloodProducts.reduce((sum, entry) => sum + entry.volume, 0);
+                    totalIntake += ioData.intakes.other.reduce((sum, entry) => sum + entry.volume, 0);
+                }
+                
+                // Get total output from the summary section
+                let totalOutput = 0;
+                const outputSummaryMatch = text.match(/Total\s+Summary[\s\S]*?Output\s+mL\s+([\d,]+(?:\.\d+)?)/i);
+                if (outputSummaryMatch) {
+                    totalOutput = parseFloat(outputSummaryMatch[1].replace(/,/g, ''));
+                } else {
+                    totalOutput += ioData.outputs.urine.reduce((sum, entry) => sum + entry.volume, 0);
+                    Object.values(ioData.outputs.drains).forEach(entries => {
+                        totalOutput += entries.reduce((sum, entry) => sum + entry.volume, 0);
+                    });
+                    Object.values(ioData.outputs.other).forEach(entries => {
+                        totalOutput += entries.reduce((sum, entry) => sum + entry.volume, 0);
+                    });
+                }
+                
+                // INTAKES
+                fishbone += `I: ${totalIntake}\n`;
+                let hasIntakes = false;
+
+                if (ioData.intakes.enteral.length > 0) {
+                    const totalEnteral = ioData.intakes.enteral.reduce((sum, entry) => sum + entry.volume, 0);
+                    const hourlyEnteral = Math.round(totalEnteral / elapsedHours);
+                    const latestEnteral = ioData.intakes.enteral.sort((a, b) => b.dateTime - a.dateTime)[0];
+                    fishbone += `Enteral: ${totalEnteral}mL/${elapsedHoursDisplay}hr (${hourlyEnteral}mL/hr) - last: ${latestEnteral.dateTimeStr}\n`;
+                    hasIntakes = true;
+                }
+                
+                if (ioData.intakes.bloodProducts.length > 0) {
+                    const totalBlood = ioData.intakes.bloodProducts.reduce((sum, entry) => sum + entry.volume, 0);
+                    const latestBlood = ioData.intakes.bloodProducts.sort((a, b) => b.dateTime - a.dateTime)[0];
+                    fishbone += `Blood products: ${totalBlood}mL/${elapsedHoursDisplay}hr - last: ${latestBlood.dateTimeStr}\n`;
+                    hasIntakes = true;
+                }
+                
+                if (ioData.intakes.other.length > 0) {
+                    const groupedIntakes = {};
+                    ioData.intakes.other.forEach(entry => {
+                        const type = entry.description || 'Other intake';
+                        if (!groupedIntakes[type]) groupedIntakes[type] = [];
+                        groupedIntakes[type].push(entry);
+                    });
+                    
+                    Object.entries(groupedIntakes).forEach(([type, entries]) => {
+                        const total = entries.reduce((sum, entry) => sum + entry.volume, 0);
+                        const latest = entries.sort((a, b) => b.dateTime - a.dateTime)[0];
+                        fishbone += `${type}: ${total}mL/${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}\n`;
+                        hasIntakes = true;
+                    });
+                }
+                
+                if (!hasIntakes) {
+                    fishbone += `None found (fluids, infusions, blood products, oral) in last ${elapsedHoursDisplay}hr\n`;
+                }
+                
+                // OUTPUTS  
+                fishbone += `O: ${totalOutput}\n`;
+                let hasOutputs = false;
+
+                // Urine output
+                if (ioData.outputs.urine.length > 0) {
+                    const totalUrine = ioData.outputs.urine.reduce((sum, entry) => sum + entry.volume, 0);
+                    const hourlyOutput = Math.round(totalUrine / elapsedHours);
+                    
+                    // Start with Foley if present
+                    let urineStr = '';
+                    if (ioData.outputs.urinaryCatheter) {
+                        urineStr = `${markAbnormal('Foley')} `;
+                    }
+                    
+                    urineStr += `UOP: ${totalUrine}mL/${elapsedHoursDisplay}hr`;
+                    if (data.weight) {
+                        const urinePerKgHr = (hourlyOutput / data.weight).toFixed(2);
+                        urineStr += ` (${urinePerKgHr}mL/kg/hr)`;
+                        if (urinePerKgHr < 0.5) {
+                            const foleyPrefix = ioData.outputs.urinaryCatheter ? `${markAbnormal('Foley')} ` : '';
+                            urineStr = `${foleyPrefix}UOP: ${markAbnormal(`${totalUrine}mL/${elapsedHoursDisplay}hr (${urinePerKgHr}mL/kg/hr)`)}`;
+                        }
+                    }
+                    urineStr += ` - last: ${ioData.outputs.lastUrineTimeStr}`;
+                    
+                    fishbone += urineStr + '\n';
+                    hasOutputs = true;
+                } else {
+                    fishbone += `${markAbnormal('No urine found')}\n`;
+                    hasOutputs = true;
+                }
+                
+                // Drains
+                Object.entries(ioData.outputs.drains).forEach(([drainType, entries]) => {
+                    if (entries.length > 0) {
+                        const total = entries.reduce((sum, entry) => sum + entry.volume, 0);
+                        const latest = entries.sort((a, b) => b.dateTime - a.dateTime)[0];
+                        let drainStr = `${markAbnormal(drainType)}: ${total}mL/${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}`;
+                        if (total > (30 * elapsedHours)) {
+                            drainStr = `${markAbnormal(drainType)}: ${markAbnormal(`${total}mL/${elapsedHoursDisplay}hr`)} - last: ${latest.dateTimeStr}`;
+                        }
+                        fishbone += drainStr + '\n';
+                        hasOutputs = true;
+                    }
+                });
+                
+                // Other outputs
+                Object.entries(ioData.outputs.other).forEach(([outputType, entries]) => {
+                    if (entries.length > 0) {
+                        const total = entries.reduce((sum, entry) => sum + entry.volume, 0);
+                        const latest = entries.sort((a, b) => b.dateTime - a.dateTime)[0];
+                        if (outputType.includes('Blood Loss')) {
+                            fishbone += `${outputType}: ${markAbnormal(`${total}mL/${elapsedHoursDisplay}hr`)} - last: ${latest.dateTimeStr}\n`;
+                        } else {
+                            fishbone += `${outputType}: ${total}mL/${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}\n`;
+                        }
+                        hasOutputs = true;
+                    }
+                });
+                
+                // COUNTS
+                if (Object.keys(ioData.counts || {}).length > 0) {
+                    fishbone += `COUNTS:\n`;
+                    Object.entries(ioData.counts || {}).forEach(([countType, entries]) => {
+                        if (entries.length > 0) {
+                            const totalCount = entries.reduce((sum, entry) => sum + entry.count, 0);
+                            const latest = entries.sort((a, b) => b.dateTime - a.dateTime)[0];
+                            let countStr = `${countType}: ${totalCount}/${elapsedHoursDisplay}hr - last: ${latest.dateTimeStr}`;
+                            if ((countType.toLowerCase().includes('stool') && totalCount > 3) || 
+                                (countType.toLowerCase().includes('vomit') && totalCount > 0)) {
+                                countStr = `${countType}: ${markAbnormal(`${totalCount}/${elapsedHoursDisplay}hr`)} - last: ${latest.dateTimeStr}`;
+                            }
+                            fishbone += countStr + '\n';
+                        }
+                    });
+                }
+                
+                // Fluid balance
+                const intakeMatch = text.match(/Total\s+Summary[\s\S]*?Intake\s+mL\s+([\d,]+(?:\.\d+)?)/i);
+                const outputMatch = text.match(/Total\s+Summary[\s\S]*?Output\s+mL\s+([\d,]+(?:\.\d+)?)/i);
+                const balanceMatch = text.match(/Fluid\s+Balance\s+([-+]?[\d,]+(?:\.\d+)?)/i);
+                
+                let fluidBalance = null;
+                if (balanceMatch) {
+                    fluidBalance = parseFloat(balanceMatch[1].replace(/,/g, ''));
+                } else if (intakeMatch && outputMatch) {
+                    const totalIntake = parseFloat(intakeMatch[1].replace(/,/g, ''));
+                    const totalOutput = parseFloat(outputMatch[1].replace(/,/g, ''));
+                    fluidBalance = totalIntake - totalOutput;
+                }
+                
+                if (fluidBalance !== null) {
+                    const sign = fluidBalance >= 0 ? '+' : '';
+                    const absBalance = Math.abs(fluidBalance);
+                    
+                    if (absBalance > 100) {
+                        fishbone += `Fluid Balance: ${markAbnormal(`${sign}${fluidBalance.toFixed(1)}mL`)}\n`;
+                    } else {
+                        fishbone += `Fluid Balance: ${sign}${fluidBalance.toFixed(1)}mL\n`;
+                    }
+                }
+                
+                fishbone += '\n';
+            }
+
+            // CBC FISHBONE
+            const wbc = data.labs.wbc?.[0];
+            const hgb = data.labs.hgb?.[0];
+            const hct = data.labs.hct?.[0];
+            const plt = data.labs.plt?.[0];
+
+            const wbcPrev = data.labs.wbc?.[1];
+            const hgbPrev = data.labs.hgb?.[1];
+            const hctPrev = data.labs.hct?.[1];
+            const pltPrev = data.labs.plt?.[1];
+
+            let wbcStr = '--';
+            if (wbc !== undefined) {
+                if (wbc < 4.5 || wbc > 11) {
+                    wbcStr = wbcPrev !== undefined ? `${markAbnormal(wbc)}(${wbcPrev})` : markAbnormal(wbc);
+                } else {
+                    wbcStr = wbc.toString();
+                }
+            }
+
+            let hgbStr = '--';
+            if (hgb !== undefined) {
+                if (hgb <= 7 || (hgbPrev !== undefined && hgbPrev - hgb >= 1)) {
+                    hgbStr = `${markAbnormal(hgb)}${hgbPrev !== undefined ? `(${hgbPrev})` : ''}`;
+                } else {
+                    hgbStr = hgb.toString();
+                }
+            }
+
+            let hctStr = '--';
+            if (hct !== undefined) {
+                if (hct < 21 && hctPrev !== undefined) {
+                    hctStr = `${markAbnormal(hct)}(${hctPrev})`;
+                } else if (hct < 21) {
+                    hctStr = markAbnormal(hct);
+                } else {
+                    hctStr = hct.toString();
+                }
+            }
+
+            let pltStr = '--';
+            if (plt !== undefined) {
+                if ((plt < 150 || plt > 400) && pltPrev !== undefined) {
+                    pltStr = `${markAbnormal(plt)}(${pltPrev})`;
+                } else if (plt < 150 || plt > 400) {
+                    pltStr = markAbnormal(plt);
+                } else {
+                    pltStr = plt.toString();
+                }
+            }
+
+            const posBack = wbcStr.length;
+            const hctEndPos = posBack + 1 + hctStr.length;
+            const slashPos = hctEndPos;
+            const spacesAfterHgb = Math.max(0, slashPos - (wbcStr.length + 1 + hgbStr.length + 1));
+            
+            fishbone += `${wbcStr}\\${hgbStr} ${' '.repeat(spacesAfterHgb)}/${pltStr}\n`;
+            
+            let bottom = Array(slashPos + 1).fill(' ');
+            bottom[posBack] = '/';
+            for (let i = 0; i < hctStr.length; i++) {
+                bottom[posBack + 1 + i] = hctStr[i];
+            }
+            bottom[slashPos] = '\\';
+            fishbone += bottom.join('').trimEnd() + '\n';
+
+            // BMP FISHBONE
+            const na  = data.labs.na?.[0],
+                  k   = data.labs.k?.[0],
+                  cl  = data.labs.cl?.[0],
+                  co2 = data.labs.co2?.[0],
+                  bun = data.labs.bun?.[0],
+                  cr  = data.labs.cr?.[0],
+                  glu = data.labs.glu?.[0];
+
+            let naStr   = na  !== undefined ? na.toString()   : '--';
+            let kStr    = k   !== undefined ? (k < 3.5 || k > 5.0 ? markAbnormal(k) : k.toString()) : '--';
+            let clStr   = cl  !== undefined ? (cl < 96 || cl > 106 ? markAbnormal(cl) : cl.toString()) : '--';
+            let co2Str  = co2 !== undefined ? co2.toString()  : '--';
+            let bunStr  = bun !== undefined ? (bun > 24 ? markAbnormal(bun) : bun.toString()) : '--';
+
+            let crStr;
+            if (cr !== undefined) {
+                const prevCr = data.labs.cr?.[1];
+                if (cr > 1.2 || (prevCr !== undefined && cr - prevCr > 0.3)) {
+                    crStr = prevCr !== undefined ? `${markAbnormal(cr)}(${prevCr})` : markAbnormal(cr);
+                } else {
+                    crStr = cr.toString();
+                }
+            } else {
+                crStr = '--';
+            }
+
+            let gluStr  = glu !== undefined ? (glu > 200 || glu < 70 ? markAbnormal(glu) : glu.toString()) : '--';
+
+            const col1 = Math.max(naStr.length, kStr.length);
+            const col2 = Math.max(clStr.length, co2Str.length);
+            const col3 = Math.max(bunStr.length, crStr.length);
+
+            fishbone +=
+                `${naStr.padEnd(col1)} |` +
+                `${clStr.padEnd(col2)} |` +
+                `${bunStr.padEnd(col3)}/${gluStr}\n`;
+
+            fishbone +=
+                `${kStr.padEnd(col1)} |` +
+                `${co2Str.padEnd(col2)} |` +
+                `${crStr.padEnd(col3)}\\\n`;
+
+            // Check if labs are recent
+            const currentDate = new Date();
+            currentDate.setHours(0, 0, 0, 0);
+            const yesterday = new Date(currentDate);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const isRecentDate = (dateStr) => {
+                if (!dateStr) return false;
+                const [month, day, year] = dateStr.split('/').map(n => parseInt(n));
+                const labDate = new Date(2000 + year, month - 1, day);
+                labDate.setHours(0, 0, 0, 0);
+                return labDate >= yesterday && labDate <= currentDate;
+            };
+
+            // LFTs SECTION
+            if ((data.labs.ast || data.labs.alt || data.labs.tbil || data.labs.alk) && 
+                (isRecentDate(data.dates.ast) || isRecentDate(data.dates.alt))) {
+                const ast = data.labs.ast?.[0];
+                const alt = data.labs.alt?.[0];
+                const astPrev = data.labs.ast?.[1];
+                const altPrev = data.labs.alt?.[1];
+                
+                let astAltStr = '';
+                if (ast && alt && (ast > 40 || alt > 40)) {
+                    astAltStr = `AST/ALT:${markAbnormal(`${ast}/${alt}`)}(${astPrev || '--'}/${altPrev || '--'})`;
+                } else if (ast && alt) {
+                    astAltStr = `AST/ALT:${ast}/${alt}`;
+                }
+                
+                const tbil = data.labs.tbil?.[0];
+                const tbilPrev = data.labs.tbil?.[1];
+                let tbilStr = '';
+                if (tbil !== undefined) {
+                    if (tbil > 1.2) {
+                        tbilStr = `TB:${markAbnormal(tbil)}${tbilPrev !== undefined ? `(${tbilPrev})` : ''}`;
+                    } else {
+                        tbilStr = `TB:${tbil}`;
+                    }
+                } else {
+                    tbilStr = 'TB:--';
+                }
+                
+                const dbil = data.labs.dbil?.[0];
+                const dbilPrev = data.labs.dbil?.[1];
+                let dbilStr = '';
+                if (dbil !== undefined) {
+                    if (dbil > 0.3) {
+                        dbilStr = `DB:${markAbnormal(dbil)}${dbilPrev !== undefined ? `(${dbilPrev})` : ''}`;
+                    } else {
+                        dbilStr = `DB:${dbil}`;
+                    }
+                } else {
+                    dbilStr = 'DB:--';
+                }
+                
+                const alk = data.labs.alk?.[0];
+                const alkPrev = data.labs.alk?.[1];
+                let alkStr = '';
+                if (alk !== undefined) {
+                    if (alk > 150 || alk < 40) {
+                        alkStr = `ALK:${markAbnormal(alk)}${alkPrev !== undefined ? `(${alkPrev})` : ''}`;
+                    } else {
+                        alkStr = `ALK:${alk}`;
+                    }
+                } else {
+                    alkStr = 'ALK:--';
+                }
+                
+                fishbone += `LFTs: ${astAltStr}, ${tbilStr}, ${dbilStr}, ${alkStr}`;
+                
+                const lfDate = data.dates.ast || data.dates.alt || data.dates.tbil;
+                const lfTime = data.times.ast || data.times.alt || data.times.tbil || '';
+                if (lfDate) {
+                    fishbone += ` (${lfDate}${lfTime ? ' ' + lfTime : ''})`;
+                }
+                fishbone += '\n';
+            }
+
+            // COAGULATION SECTION
+            if ((data.labs.pt || data.labs.ptt || data.labs.inr || data.labs.fib) &&
+                (isRecentDate(data.dates.pt) || isRecentDate(data.dates.ptt) || 
+                 isRecentDate(data.dates.inr) || isRecentDate(data.dates.fib))) {
+                
+                const pt = data.labs.pt?.[0];
+                const ptt = data.labs.ptt?.[0];
+                const inr = data.labs.inr?.[0];
+                const fib = data.labs.fib?.[0];
+                
+                const ptPrev = data.labs.pt?.[1];
+                const pttPrev = data.labs.ptt?.[1];
+                const inrPrev = data.labs.inr?.[1];
+                const fibPrev = data.labs.fib?.[1];
+                
+                let ptStr = '--';
+                if (pt !== undefined) {
+                    if (pt > 13.5 && ptPrev !== undefined) {
+                        ptStr = `${markAbnormal(pt)}(${ptPrev})`;
+                    } else if (pt > 13.5) {
+                        ptStr = markAbnormal(pt);
+                    } else {
+                        ptStr = pt.toString();
+                    }
+                }
+                
+                let pttStr = '--';
+                if (ptt !== undefined) {
+                    if (ptt > 35 && pttPrev !== undefined) {
+                        pttStr = `${markAbnormal(ptt)}(${pttPrev})`;
+                    } else if (ptt > 35) {
+                        pttStr = markAbnormal(ptt);
+                    } else {
+                        pttStr = ptt.toString();
+                    }
+                }
+                
+                let inrStr = '--';
+                if (inr !== undefined) {
+                    if (inr > 1.1 && inrPrev !== undefined) {
+                        inrStr = `${markAbnormal(inr)}(${inrPrev})`;
+                    } else if (inr > 1.1) {
+                        inrStr = markAbnormal(inr);
+                    } else {
+                        inrStr = inr.toString();
+                    }
+                }
+                
+                let fibStr = '--';
+                if (fib !== undefined) {
+                    if ((fib < 200 || fib > 400) && fibPrev !== undefined) {
+                        fibStr = `${markAbnormal(fib)}(${fibPrev})`;
+                    } else if (fib < 200 || fib > 400) {
+                        fibStr = markAbnormal(fib);
+                    } else {
+                        fibStr = fib.toString();
+                    }
+                }
+                
+                fishbone += `Coags: PT/PTT: ${ptStr}/${pttStr}, INR: ${inrStr}, Fib: ${fibStr}`;
+                
+                const coagDate = data.dates.pt || data.dates.ptt || data.dates.inr || data.dates.fib;
+                const coagTime = data.times.pt || data.times.ptt || data.times.inr || data.times.fib || '';
+                if (coagDate) {
+                    fishbone += ` (${coagDate}${coagTime ? ' ' + coagTime : ''})`;
+                }
+                fishbone += '\n';
+            }
+            
+            // ABG SECTION
+            if ((data.labs.ph || data.labs.po2 || data.labs.pco2) && 
+                (isRecentDate(data.dates.ph) || isRecentDate(data.dates.po2))) {
+                const ph = data.labs.ph?.[0];
+                const po2 = data.labs.po2?.[0];
+                const pco2 = data.labs.pco2?.[0];
+                const bicarb = data.labs.bicarb?.[0];
+                
+                let phStr = ph !== undefined ? (ph < 7.35 || ph > 7.45 ? markAbnormal(ph) : ph.toString()) : '--';
+                let po2Str = po2 !== undefined ? (po2 < 80 ? markAbnormal(po2) : po2.toString()) : '--';
+                let pco2Str = pco2 !== undefined ? (pco2 < 35 || pco2 > 45 ? markAbnormal(pco2) : pco2.toString()) : '--';
+                let bicarbStr = bicarb !== undefined ? (bicarb < 22 || bicarb > 28 ? markAbnormal(bicarb) : bicarb.toString()) : '--';
+                
+                fishbone += `ABG: ${phStr}/${pco2Str}/${po2Str}/${bicarbStr}`;
+                
+                const abgDate = data.dates.ph || data.dates.po2 || data.dates.pco2;
+                const abgTime = data.times.ph || data.times.po2 || data.times.pco2 || '';
+                if (abgDate) {
+                    fishbone += ` (${abgDate}${abgTime ? ' ' + abgTime : ''})`;
+                }
+                fishbone += '\n';
+            }
+            
+            // MISC LABS SECTION
+            const miscLabs = [];
+            
+            const lactate = data.labs.lactate?.[0];
+            if (lactate !== undefined) {
+                let lactateStr = `Lactate:${lactate > 2 ? markAbnormal(lactate) : lactate}`;
+                miscLabs.push(lactateStr);
+            }
+            
+            const trop = data.labs.trop?.[0];
+            if (trop !== undefined && isRecentDate(data.dates.trop)) {
+                let tropStr = `Trop:${trop > 0.04 ? markAbnormal(trop) : trop}`;
+                miscLabs.push(tropStr);
+            }
+            
+            const amylase = data.labs.amylase?.[0];
+            if (amylase !== undefined && isRecentDate(data.dates.amylase)) {
+                let amylaseStr = `Amylase:${amylase > 110 ? markAbnormal(amylase) : amylase}`;
+                miscLabs.push(amylaseStr);
+            }
+            
+            const lipase = data.labs.lipase?.[0];
+            if (lipase !== undefined && isRecentDate(data.dates.lipase)) {
+                let lipaseStr = `Lipase:${lipase > 140 ? markAbnormal(lipase) : lipase}`;
+                miscLabs.push(lipaseStr);
+            }
+            
+            if (miscLabs.length > 0) {
+                fishbone += `Misc: ${miscLabs.join(', ')}\n`;
+            }
+            
+            return fishbone;
+        }
+
+        function pasteFromClipboard() {
+            const textarea = document.getElementById('dataInput');
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            button.textContent = '📋 Pasting...';
+            button.disabled = true;
+            
+            if (navigator.clipboard && navigator.clipboard.readText) {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        if (text.trim()) {
+                            textarea.value = text;
+                            button.textContent = '✅ Pasted';
+                            button.classList.add('success');
+                            
+                            setTimeout(() => {
+                                button.textContent = originalText;
+                                button.classList.remove('success');
+                                button.disabled = false;
+                            }, 2000);
+                        } else {
+                            button.textContent = originalText;
+                            button.disabled = false;
+                            alert('Clipboard is empty or contains no text.');
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Failed to read clipboard: ', err);
+                        button.textContent = originalText;
+                        button.disabled = false;
+                        alert('Failed to read from clipboard. Please paste manually using Ctrl+V (or Cmd+V on Mac).');
+                    });
+            } else {
+                button.textContent = originalText;
+                button.disabled = false;
+                alert('Clipboard API not supported. Please paste manually using Ctrl+V (or Cmd+V on Mac).');
+                textarea.focus();
             }
         }
-    });
-    
-    console.log('Total patients parsed:', newPatients.length);
-    if (newPatients.length > 0) {
-        console.log('First patient:', newPatients[0]);
-        console.log('Last patient:', newPatients[newPatients.length - 1]);
-    }
-    
-    return newPatients;
-}
 
+        function generateStats(data, fishbone, warnings) {
+            const stats = {
+                vitalsCount: 0,
+                labsCount: 0,
+                warningsCount: warnings.length,
+                fishboneLines: fishbone.split('\n').length
+            };
 
+            // Count vitals
+            if (data.vitals) {
+                stats.vitalsCount = Object.keys(data.vitals).length;
+            }
 
+            // Count labs
+            if (data.labs) {
+                stats.labsCount = Object.keys(data.labs).length;
+            }
 
+            return stats;
+        }
 
+        function displayStats(stats) {
+            const statsContainer = document.getElementById('stats');
+            statsContainer.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-number">${stats.vitalsCount}</div>
+                    <div class="stat-label">Vital Parameters</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.labsCount}</div>
+                    <div class="stat-label">Lab Values</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.warningsCount}</div>
+                    <div class="stat-label">Clinical Warnings</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">${stats.fishboneLines}</div>
+                    <div class="stat-label">Fishbone Lines</div>
+                </div>
+            `;
+        }
 
-        
+        function processData() {
+            const inputText = document.getElementById('dataInput').value.trim();
+            
+            if (!inputText) {
+                alert('Please enter or paste medical data first.');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+            
+            // Process data after a short delay to show loading animation
+            setTimeout(() => {
+                try {
+                    // Extract lab values and generate fishbone
+                    const labData = extractLabValues(inputText);
+                    const fishbone = generateFishbone(labData);
+                    const warnings = generateWarnings(labData);
+                    
+                    // Generate I/O warnings if data available
+                    const ioData = extractIntakeOutputData(inputText);
+                    const ioWarnings = generateIntakeOutputWarnings(ioData, labData.weight);
+                    
+                    // Combine all warnings
+                    const allWarnings = [...warnings, ...ioWarnings];
+                    
+                    // Store current fishbone
+                    currentFishbone = fishbone;
+                    
+                    // Generate stats
+                    const stats = generateStats(labData, fishbone, allWarnings);
+                    currentStats = stats;
+                    
+                    // Display results
+                    displayResults(fishbone, allWarnings, stats);
+                    
+                    // Try to copy to clipboard automatically
+                    copyToClipboard(fishbone);
+                    
+                } catch (error) {
+                    console.error('Error processing data:', error);
+                    alert('Error processing medical data. Please check the format and try again.');
+                } finally {
+                    // Hide loading
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 500);
+        }
+
+        function displayResults(fishbone, warnings, stats) {
+            // Display stats
+            displayStats(stats);
+            
+            // Display fishbone
+            document.getElementById('fishboneOutput').textContent = fishbone;
+            
+            // Display warnings
+            const warningsContainer = document.getElementById('warningsOutput');
+            if (warnings.length > 0) {
+                warningsContainer.innerHTML = warnings.map(warning => 
+                    `<div class="warning-item">${warning}</div>`
+                ).join('');
+            } else {
+                warningsContainer.innerHTML = '<div class="warning-item" style="border-color: var(--success); background: rgba(16, 185, 129, 0.1);">No clinical warnings detected</div>';
+            }
+            
+            // Show results
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        showSuccessMessage();
+                        showExcelPrompt();
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy to clipboard: ', err);
+                    });
+            }
+        }
+
+        function copyFishbone() {
+            if (!currentFishbone) {
+                alert('No fishbone diagram available to copy.');
+                return;
+            }
+            
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(currentFishbone)
+                    .then(() => {
+                        button.textContent = '✅ Copied!';
+                        button.classList.add('success');
+                        showExcelPrompt();
+                        
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                            button.classList.remove('success');
+                        }, 2000);
+                    })
+                    .catch(err => {
+                        console.error('Failed to copy: ', err);
+                        // Fallback method
+                        fallbackCopyTextToClipboard(currentFishbone);
+                        button.textContent = '✅ Copied!';
+                        button.classList.add('success');
+                        showExcelPrompt();
+                        
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                            button.classList.remove('success');
+                        }, 2000);
+                    });
+            } else {
+                // Fallback for older browsers
+                fallbackCopyTextToClipboard(currentFishbone);
+                button.textContent = '✅ Copied!';
+                button.classList.add('success');
+                showExcelPrompt();
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('success');
+                }, 2000);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('Copy failed. Please select the fishbone text and copy manually.');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        function showSuccessMessage() {
+            const successMessage = document.getElementById('successMessage');
+            successMessage.style.display = 'block';
+            
+            setTimeout(() => {
+                successMessage.style.display = 'none';
+            }, 3000);
+        }
+
+        function showExcelPrompt() {
+            document.getElementById('excelPrompt').style.display = 'block';
+        }
+
+        function hideExcelPrompt() {
+            document.getElementById('excelPrompt').style.display = 'none';
+        }
+
+        function clearData() {
+            const confirmation = confirm('Are you sure you want to clear all data?');
+            if (confirmation) {
+                document.getElementById('dataInput').value = '';
+                document.getElementById('results').style.display = 'none';
+                document.getElementById('excelPrompt').style.display = 'none';
+                document.getElementById('successMessage').style.display = 'none';
+                currentFishbone = '';
+                currentStats = {};
+            }
+        }
+
+        // Auto-resize textarea
+        document.getElementById('dataInput').addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            const excelPrompt = document.getElementById('excelPrompt');
+            if (event.target === excelPrompt) {
+                hideExcelPrompt();
+            }
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(event) {
+            // Ctrl/Cmd + Enter to process data
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                processData();
+            }
+            
+            // Escape to hide prompts
+            if (event.key === 'Escape') {
+                hideExcelPrompt();
+            }
+        });
     </script>
 </body>
 </html>
