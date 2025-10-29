@@ -270,12 +270,7 @@
         // ===== MEDICATION ABBREVIATION DATABASE =====
         const MED_ABBREVIATIONS = {
             // Pain medications
-            'hydromorphone': 'D', 'dilaudid': 'D', 'oxycodone': 'O', 'morphine': 'M',
-            'fentanyl': 'F', 'fentanyl citrate': 'F', 'acetaminophen': 'T', 'tylenol': 'T',
-            'ibuprofen': 'Ibu', 'ketorolac': 'Toradol', 'toradol': 'Toradol',
-            'tramadol': 'Tramadol', 'hydrocodone': 'Norco', 'meperidine': 'Demerol',
-            'codeine': 'Codeine', 'naproxen': 'Naproxen', 'celecoxib': 'Celebrex',
-            
+
             // Antibiotics
             'cefepime': 'Cefepime', 'vancomycin': 'Vanc', 'piperacillin-tazobactam': 'Pip-Tazo',
             'piperacillin': 'Pip', 'tazobactam': 'Tazo', 'meropenem': 'Mero',
@@ -317,7 +312,7 @@
             'valsartan': 'Valsartan', 'amlodipine': 'Norvasc', 'diltiazem': 'Cardizem',
             'nicardipine': 'Cardene', 'hydralazine': 'Hydral', 'furosemide': 'Lasix',
             'bumetanide': 'Bumex', 'torsemide': 'Torsemide', 'spironolactone': 'Spiro',
-            'albuterol': 'Alb', 'ipratropium': 'Atro', 'albuterol-ipratropium': 'DuoNeb',
+            'albuterol': 'albuterol', 'ipratropium': 'Atro', 'albuterol-ipratropium': 'DuoNeb',
             'nitroglycerin': 'NTG', 'isosorbide': 'Imdur', 'digoxin': 'Dig',
             'amiodarone': 'Amio', 'sotalol': 'Sotalol', 'flecainide': 'Flec',
             'rosuvastatin': 'Crestor', 'atorvastatin': 'Lipitor', 'simvastatin': 'Zocor',
@@ -337,6 +332,12 @@
             'mirtazapine': 'Remeron', 'trazodone': 'Trazodone', 'clonazepam': 'Klonopin',
             'alprazolam': 'Xanax', 'cyclobenzaprine': 'Flexeril', 'baclofen': 'Baclofen',
             'methocarbamol': 'Robaxin', 'robaxin': 'Robaxin', 'lidocaine': 'Lido',
+            'hydromorphone': 'D', 'dilaudid': 'D', 'oxycodone': 'O', 'morphine': 'M',
+            'fentanyl': 'F', 'fentanyl citrate': 'F', 'acetaminophen': 'T', 'tylenol': 'T',
+            'ibuprofen': 'Ibu', 'ketorolac': 'Toradol', 'toradol': 'Toradol',
+            'tramadol': 'Tramadol', 'hydrocodone': 'Norco', 'meperidine': 'Demerol',
+            'codeine': 'Codeine', 'naproxen': 'Naproxen', 'celecoxib': 'Celebrex',
+            
             
             // Endocrine
             'insulin lispro': 'Lispro', 'insulin aspart': 'Aspart',
@@ -728,76 +729,179 @@
             return meds;
         }
 
-        function parseMedicationLine(line, medType) {
-            const lineLower = line.toLowerCase();
-            
-            // Skip empty lines or lines that are too short
-            if (!line || line.length < 3) return null;
-            
-            // Check for insulin sliding scale
-            if (lineLower.includes('insulin') && (lineLower.includes('sliding scale') || lineLower.includes('scale'))) {
-                return { name: 'ISS', category: 'endo', fullName: line };
-            }
+       
 
-            // Check for continuous infusions (pressors, sedation)
-            if (medType === 'continuous' || lineLower.includes('continuous') || lineLower.includes(' gtt')) {
-                // Extract drug name before dose
-                const match = line.match(/^([A-Za-z\-\s]+?)(?:\s+\d+|\s+IV|\s+continuous)/i);
-                if (match) {
-                    const drugName = match[1].trim();
-                    const abbrev = abbreviateMedication(drugName);
-                    return { name: `${abbrev} gtt`, category: null, fullName: drugName };
-                }
-            }
 
-            // Check for IV fluids with rates
-            const fluidRateMatch = line.match(/(\d+)\s*mL?\/?hr/i);
-            if (fluidRateMatch) {
-                const rate = fluidRateMatch[1];
-                if (lineLower.includes('lactated') || lineLower.includes('ringer')) {
-                    return { name: `LR@${rate}`, category: 'renal', fullName: 'Lactated Ringers' };
-                } else if (lineLower.includes('sodium chloride') || lineLower.includes('0.9%') || lineLower.includes('normal saline') || lineLower.includes('nacl')) {
-                    return { name: `NS@${rate}`, category: 'renal', fullName: 'Normal Saline' };
-                } else if (lineLower.includes('d5')) {
-                    return { name: `D5@${rate}`, category: 'renal', fullName: 'D5 solution' };
-                }
-            }
 
-            // Parse standard medication - look for double space separator or just extract first word(s)
-            let drugName = '';
-            
-            // Try to find drug name before dose/route info
-            const patterns = [
-                /^([A-Za-z\-]+(?:\s+[A-Za-z\-]+)?)\s+\d+/,  // Name followed by dose
-                /^([A-Za-z\-]+(?:\s+[A-Za-z\-]+)?)\s+IV/i,   // Name followed by IV
-                /^([A-Za-z\-]+(?:\s+[A-Za-z\-]+)?)\s+PO/i,   // Name followed by PO
-                /^([A-Za-z\-]+(?:\s+[A-Za-z\-]+)?)\s+\(/,    // Name followed by parenthesis
-                /^([A-Za-z\-]+(?:\s+[A-Za-z\-]+)?)\s{2,}/,   // Name followed by double space
-            ];
-            
-            for (const pattern of patterns) {
-                const match = line.match(pattern);
-                if (match) {
-                    drugName = match[1].trim();
-                    break;
-                }
-            }
-            
-            // If no pattern matched, try to get just the first 1-2 words
-            if (!drugName) {
-                const words = line.split(/\s+/);
-                if (words.length >= 2 && words[1].match(/^[A-Za-z\-]+$/)) {
-                    drugName = `${words[0]} ${words[1]}`;
-                } else if (words.length >= 1) {
-                    drugName = words[0];
-                }
-            }
-            
-            if (!drugName) return null;
-            
+
+
+function parseMedicationLine(line, medType) {
+    const lineLower = line.toLowerCase();
+    
+    // Skip empty lines or lines that are too short
+    if (!line || line.length < 3) return null;
+    
+    // Check for insulin sliding scale
+    if (lineLower.includes('insulin') && (lineLower.includes('sliding scale') || lineLower.includes('scale'))) {
+        return { name: 'ISS', category: 'endo', fullName: line };
+    }
+
+    // Check for continuous infusions (pressors, sedation)
+    if (medType === 'continuous' || lineLower.includes('continuous') || lineLower.includes(' gtt')) {
+        const match = line.match(/^([A-Za-z\-\s]+?)(?:\s+\d+|\s+IV|\s+continuous)/i);
+        
+        if (match) {
+            const drugName = match[1].trim();
             const abbrev = abbreviateMedication(drugName);
-            return { name: abbrev, fullName: drugName, category: null };
+            
+            // Extract rate for continuous infusions
+            let rate = '';
+            const rateMatch = line.match(/(\d+(?:\.\d+)?)\s*(mcg|mg|units?)(?:\/min|\/hr|\/kg\/min)?/i);
+            if (rateMatch) {
+                rate = ` ${rateMatch[1]}${rateMatch[2]}/min`;
+            }
+            
+            return { name: `${abbrev}${rate} gtt`, category: null, fullName: drugName };
         }
+    }
+
+    // Check for IV fluids with rates - ONLY if rate >40 cc/hr
+    const fluidRateMatch = line.match(/(\d+)\s*mL?\/?hr/i);
+    if (fluidRateMatch) {
+        const rate = parseInt(fluidRateMatch[1]);
+        
+        if (rate > 40) {
+            if (lineLower.includes('lactated') || lineLower.includes('ringer')) {
+                return { name: `LR@${rate}`, category: 'renal', fullName: 'Lactated Ringers' };
+            } else if (lineLower.includes('sodium chloride') || lineLower.includes('0.9%') || lineLower.includes('normal saline') || lineLower.includes('nacl')) {
+                return { name: `NS@${rate}`, category: 'renal', fullName: 'Normal Saline' };
+            } else if (lineLower.includes('plasmalyte') || lineLower.includes('plasma-lyte')) {
+                return { name: `Plasmalyte@${rate}`, category: 'renal', fullName: 'Plasmalyte' };
+            } else if (lineLower.includes('d5')) {
+                return { name: `D5@${rate}`, category: 'renal', fullName: 'D5 solution' };
+            }
+        }
+    }
+
+    // Parse standard medication - extract drug name
+    let drugName = '';
+    
+    const patterns = [
+        /^([A-Za-z]+(?:-[A-Za-z]+)*(?:\s+[A-Za-z]+(?:-[A-Za-z]+)*)*?)\s+\d+/,
+        /^([A-Za-z]+(?:-[A-Za-z]+)*(?:\s+[A-Za-z]+)*?)\s+IV/i,
+        /^([A-Za-z]+(?:-[A-Za-z]+)*(?:\s+[A-Za-z]+)*?)\s+PO/i,
+        /^([A-Za-z]+(?:-[A-Za-z]+)*(?:\s+[A-Za-z]+)*?)\s+SL/i,
+        /^([A-Za-z]+(?:-[A-Za-z]+)*(?:\s+[A-Za-z]+)*?)\s+\(/,
+        /^([A-Za-z]+(?:-[A-Za-z]+)*(?:\s+[A-Za-z]+)*?)\s{2,}/,
+    ];
+    
+    for (const pattern of patterns) {
+        const match = line.match(pattern);
+        if (match) {
+            drugName = match[1].trim();
+            break;
+        }
+    }
+    
+    if (!drugName) {
+        const words = line.split(/\s+/);
+        if (words[0] && words[0].includes('-')) {
+            drugName = words[0];
+        }
+        else if (words.length >= 2 && words[1].match(/^[A-Za-z\-]+$/)) {
+            drugName = `${words[0]} ${words[1]}`;
+        }
+        else if (words.length >= 1) {
+            drugName = words[0];
+        }
+    }
+    
+    if (!drugName) return null;
+    
+    // Extract DOSE - skip concentrations (mg/mL format)
+    let dose = '';
+    const allDoses = [];
+    const doseRegex = /(\d+(?:\.\d+)?)\s*(mcg|mg|g|units?)\b/gi;
+    let doseMatch;
+    
+    while ((doseMatch = doseRegex.exec(line)) !== null) {
+        const afterDose = line.substring(doseMatch.index + doseMatch[0].length, doseMatch.index + doseMatch[0].length + 10);
+        
+        if (!afterDose.match(/^\s*\/\s*(mL|kg|min|hr)/i)) {
+            allDoses.push({
+                value: doseMatch[1] + doseMatch[2],
+                index: doseMatch.index
+            });
+        }
+    }
+    
+    if (allDoses.length > 0) {
+        dose = allDoses[allDoses.length - 1].value;
+    }
+
+    // Extract FREQUENCY - comprehensive conversion with QD for "daily"
+    let frequency = '';
+
+    // First check for standard already-abbreviated formats
+    let freqMatch = line.match(/\b(Q\d+H?|BID|TID|QID|QD|QHS|PRN)\b/i);
+    if (freqMatch) {
+        frequency = freqMatch[1].toUpperCase();
+    } else {
+        // Handle "daily" written out → QD
+        if (line.match(/\bdaily\b/i)) {
+            frequency = 'QD';
+        }
+        // Convert "X times a day" / "X times daily" formats
+        
+        // 4 times a day → QID
+        else if (line.match(/4\s+times?\s+(a|per)?\s*day|4\s+times?\s+daily/i)) {
+            frequency = 'QID';
+        }
+        // 3 times a day → TID
+        else if (line.match(/3\s+times?\s+(a|per)?\s*day|3\s+times?\s+daily/i)) {
+            frequency = 'TID';
+        }
+        // 2 times a day OR twice a day → BID
+        else if (line.match(/2\s+times?\s+(a|per)?\s*day|2\s+times?\s+daily|twice\s+(a|per)?\s*day|twice\s+daily/i)) {
+            frequency = 'BID';
+        }
+        // once a day / 1 time a day → QD
+        else if (line.match(/once\s+(a|per)?\s*day|once\s+daily|1\s+times?\s+(a|per)?\s*day|1\s+times?\s+daily/i)) {
+            frequency = 'QD';
+        }
+        // every X hours → QXH
+        else {
+            const everyMatch = line.match(/every\s+(\d+)\s+hours?/i);
+            if (everyMatch) {
+                frequency = `Q${everyMatch[1]}H`;
+            } else {
+                const everyHrMatch = line.match(/every\s+(\d+)\s+hr/i);
+                if (everyHrMatch) {
+                    frequency = `Q${everyHrMatch[1]}H`;
+                }
+                // as needed / when needed → PRN
+                else if (line.match(/as\s+needed|when\s+needed/i)) {
+                    frequency = 'PRN';
+                }
+                // at bedtime → QHS
+                else if (line.match(/at\s+bedtime|before\s+bed/i)) {
+                    frequency = 'QHS';
+                }
+            }
+        }
+    }
+
+    // Build the final medication string
+    const abbrev = abbreviateMedication(drugName);
+    let medString = abbrev;
+    if (dose) medString += ` ${dose}`;
+    if (frequency) medString += ` ${frequency}`;
+
+    return { name: medString, fullName: drugName, category: null };
+}
+
+
+
 
         function abbreviateMedication(drugName) {
             const nameLower = drugName.toLowerCase().trim();
