@@ -1332,7 +1332,7 @@ function parseMedicationLine(line, medType) {
                 const gluMax = Math.max(...labData.labs.glu);
                 bgLine += `${gluMin < 70 || gluMax > 200 ? markAbnormal(`${gluMin}-${gluMax}`, true) : `${gluMin}-${gluMax}`} blood glucose range`;
             } else {
-                bgLine += 'blood glucose range';
+                bgLine += '';
             }
             note += bgLine + '\n';
             
