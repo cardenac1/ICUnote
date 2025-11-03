@@ -813,6 +813,7 @@
                     dx: extractField(content, /Dx:\s*(.+?)(?=\n|$)/),
                     exam: extractField(content, /Exam:\s*(.+?)(?=\n[A-Z]|$)/s),
                     access: extractField(content, /Access:\s*(.+?)(?=\n|$)/),
+                    o2method: extractField(content, /O2 method:\s*(.+?)(?=\n|$)/),
                     plan: extractField(content, /Plan:\s*([\s\S]*?)(?=\n\s*\n|$)/)
                 };
             }
@@ -944,34 +945,26 @@
             // PULM
             note += 'PULM:\n';
             note += `Dx: ${existingSections?.PULM?.dx || 'No Active Issues'}\n`;
+            note += `Exam: ${existingSections?.PULM?.exam || 'CTAB, regular rate, Satting >95%'}\n`;
             
-            let pulmExam = 'Exam: CTAB, regular rate, ';
-            if (labData.vitals.o2sat) {
-                const minO2 = Math.min(...labData.vitals.o2sat);
-                if (minO2 < 94) {
-                    pulmExam += `Satting ${minO2}%* `;
-                } else {
-                    pulmExam += `Satting ${minO2}% `;
-                }
-            } else {
-                pulmExam += 'Satting >95% ';
-            }
-            
+            // O2 method line - always extract from new VIOLIN data
+            let o2Method = 'O2 method: ';
             if (labData.o2therapy) {
-                pulmExam += `on ${labData.o2therapy}`;
+                o2Method += labData.o2therapy;
                 
                 // Add vent settings if applicable
                 if (labData.o2therapy === 'Vent' && labData.ventSettings.mode) {
                     const vs = labData.ventSettings;
-                    pulmExam += ` (${vs.mode}`;
-                    if (vs.rate) pulmExam += `, RR ${vs.rate}`;
-                    if (vs.tv) pulmExam += `, TV ${vs.tv}`;
-                    if (vs.peep) pulmExam += `, PEEP ${vs.peep}`;
-                    if (vs.fio2) pulmExam += `, FiO2 ${vs.fio2}%`;
-                    pulmExam += ')';
+                    o2Method += ` ${vs.mode}`;
+                    if (vs.rate) o2Method += ` ${vs.rate}`;
+                    if (vs.tv) o2Method += `/${vs.tv}`;
+                    if (vs.fio2) o2Method += `/${vs.fio2}`;
+                    if (vs.peep) o2Method += `/${vs.peep}`;
                 }
+            } else {
+                o2Method += 'RA';
             }
-            note += pulmExam + '\n';
+            note += o2Method + '\n';
             
             note += `Meds: ${formatMeds(meds.pulm)}\n`;
             note += `Plan: \n${existingSections?.PULM?.plan || ''}\n\n`;
