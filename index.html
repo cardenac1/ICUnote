@@ -778,13 +778,65 @@
             return null;
         }
 
+
+
+
         function extractUrinaryStatus(text) {
-            if (/urinary catheter|foley/i.test(text)) {
-                return 'foley*';
-            }
+    // Helper to parse timestamp
+    function parseTS(dateStr, timeStr) {
+        const [mo, day, yr] = dateStr.split('/').map(n => parseInt(n, 10));
+        const [h, m, s] = timeStr.split(':').map(n => parseInt(n, 10));
+        return new Date(2000 + yr, mo - 1, day, h, m, s);
+    }
+    
+    const urineEntries = [];
+    
+    // Look for "Urinary Catheter Output" entries (foley)
+    const catheterRegex = /Urinary Catheter Output:.*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+    let match;
+    while ((match = catheterRegex.exec(text)) !== null) {
+        urineEntries.push({
+            method: 'foley',
+            ts: parseTS(match[1], match[2])
+        });
+    }
+    
+    // Look for "Urine Voided" entries
+    const voidedRegex = /Urine Voided:.*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+    while ((match = voidedRegex.exec(text)) !== null) {
+        urineEntries.push({
+            method: 'void',
+            ts: parseTS(match[1], match[2])
+        });
+    }
+    
+    // Look for straight catheter entries (if they exist in your system)
+    const straightCathRegex = /Straight\s+Cath(?:eter)?.*?Output:.*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+    while ((match = straightCathRegex.exec(text)) !== null) {
+        urineEntries.push({
+            method: 'straight cath',
+            ts: parseTS(match[1], match[2])
+        });
+    }
+    
+    // If we found entries, get the latest one
+    if (urineEntries.length > 0) {
+        urineEntries.sort((a, b) => a.ts - b.ts);
+        const latest = urineEntries[urineEntries.length - 1].method;
+        
+        if (latest === 'foley') {
+            return 'foley*';
+        } else if (latest === 'straight cath') {
+            return 'straight cath*';
+        } else {
             return 'void';
         }
-
+    }
+    
+    // Fallback to default
+    return 'void';
+}
+        
         // ===== PARSE EXISTING NOTE =====
         
         function parseExistingNote(noteText) {
