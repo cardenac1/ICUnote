@@ -939,7 +939,7 @@
             note += 'NEURO:\n';
             note += `Dx: ${existingSections?.NEURO?.dx || 'No Active Issues'}\n`;
             note += `Exam: ${existingSections?.NEURO?.exam || 'GCS 15 (E4V5M6), pain well controlled, strength and sensation intact BUE+BLE, CN II-XII grossly intact, PERRLA, EOMI'}\n`;
-            note += `Meds: ${formatMeds(meds.neuro)}\n`;
+            note += `Meds: ${existingSections?.NEURO?.meds || formatMeds(meds.neuro)}\n`;
             note += `Plan: \n${existingSections?.NEURO?.plan || ''}\n\n`;
 
             // PULM
@@ -966,7 +966,7 @@
             }
             note += o2Method + '\n';
             
-            note += `Meds: ${formatMeds(meds.pulm)}\n`;
+            note += `Meds: ${existingSections?.PULM?.meds || formatMeds(meds.pulm)}\n`;
             note += `Plan: \n${existingSections?.PULM?.plan || ''}\n\n`;
 
             // CV
@@ -988,16 +988,16 @@
             note += cvExam + '\n';
             
             note += `Access: ${existingSections?.CV?.access || 'PIVs'}\n`;
-            note += `Meds: ${formatMeds(meds.cv)}\n`;
+           note += `Meds: ${existingSections?.CV?.meds || formatMeds(meds.cv)}\n`;
             note += `Plan: \n${existingSections?.CV?.plan || ''}\n\n`;
 
             // GI
             note += 'GI:\n';
             note += `Dx: ${existingSections?.GI?.dx || 'No Active Issues'}\n`;
             note += `Exam: ${existingSections?.GI?.exam || 'abd soft, non tender non distended, incisions c/d/i, BMx1'}\n`;
-            note += `Nutrition: ${dietOrder || 'diet order'}\n`;
-            note += `GI ppx: ${formatMeds(meds.gi_ppx)}\n`;
-            note += `Bowel reg: ${formatMeds(meds.gi_bowel)}\n`;
+            note += `Nutrition: ${existingSections?.GI?.nutrition || dietOrder || 'diet order'}\n`;  
+            note += `GI ppx: ${existingSections?.GI?.meds ? existingSections.GI.meds : formatMeds(meds.gi_ppx)}\n`;
+            note += `Bowel reg: ${existingSections?.GI?.bowel || formatMeds(meds.gi_bowel)}\n`;
             note += `Plan: \n${existingSections?.GI?.plan || ''}\n\n`;
 
             // RENAL/FLUIDS
@@ -1071,7 +1071,7 @@
             }
             note += electroLine + '\n';
             
-            note += `IVF: ${formatMeds(meds.renal)}\n`;
+            note += `IVF: ${existingSections?.['RENAL/FLUIDS']?.meds || formatMeds(meds.renal)}\n`;
             note += `Plan: \n${existingSections?.['RENAL/FLUIDS']?.plan || ''}\n\n`;
 
             // HEME
@@ -1124,7 +1124,7 @@
             }
             note += labsLine + '\n';
             
-            note += `DVT ppx: ${formatMeds(meds.anticoag)}\n`;
+            note += `DVT ppx: ${existingSections?.HEME?.meds || formatMeds(meds.anticoag)}\n`;
             note += `Plan: \n${existingSections?.HEME?.plan || ''}\n\n`;
 
             // INFECTION
@@ -1150,7 +1150,7 @@
             }
             note += infectionLine + '\n';
             
-            note += `Abx: ${formatMeds(meds.antibiotics)}\n`;
+            note += `Meds: ${existingSections?.INFECTION?.meds || formatMeds(meds.antibiotics)}\n`;
             note += `Plan: \n${existingSections?.INFECTION?.plan || ''}\n\n`;
 
             // ENDO
@@ -1171,13 +1171,13 @@
             }
             note += bgLine + '\n';
             
-            note += `Meds: ${formatMeds(meds.endo)}\n`;
+            note += `Meds: ${existingSections?.ENDO?.meds || formatMeds(meds.endo)}\n`;
             note += `Plan: \n${existingSections?.ENDO?.plan || ''}\n\n`;
 
             // SKIN/OTHER
             note += 'SKIN/OTHER:\n';
             note += `Dx: ${existingSections?.['SKIN/OTHER']?.dx || 'No Active Issues'}\n`;
-            note += `Meds: ${formatMeds(meds.other)}\n`;
+            note += `Meds: ${existingSections?.['SKIN/OTHER']?.meds || formatMeds(meds.other)}\n`;
             note += 'Labs: 11/11 q12\n';
             note += `Plan: \n${existingSections?.['SKIN/OTHER']?.plan || ''}\n\n`;
 
