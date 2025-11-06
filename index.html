@@ -1167,7 +1167,7 @@
 
             // Use urine output since 7 AM if available
             if (urineOutputData && urineOutputData.totalOutput > 0 && urineOutputData.ccKgHr !== null) {
-                renalExam += `UOP ${Math.round(urineOutputData.totalOutput)} cc since 7 AM`;
+                renalExam += `UOP ${Math.round(urineOutputData.totalOutput)} cc`;
                 const ccKgHr = urineOutputData.ccKgHr.toFixed(1);
                 if (parseFloat(ccKgHr) < 0.5) {
                     renalExam += ` (${ccKgHr} cc/kg/hr)*, `;
