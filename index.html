@@ -933,14 +933,27 @@
                 const nextSection = sectionNames[i + 1];
                 const endIndex = nextSection ? nextSection.start : noteText.length;
                 const content = noteText.substring(section.start, endIndex);
-                
+
                 sections[section.name] = {
                     dx: extractField(content, /Dx:\s*(.+?)(?=\n|$)/),
                     exam: extractField(content, /Exam:\s*(.+?)(?=\n[A-Z]|$)/s),
                     access: extractField(content, /Access:\s*(.+?)(?=\n|$)/),
                     o2method: extractField(content, /O2 method:\s*(.+?)(?=\n|$)/),
+                    nutrition: extractField(content, /Nutrition:\s*(.+?)(?=\n|$)/),
+                    bowel: extractField(content, /Bowel reg:\s*(.+?)(?=\n|$)/),
                     plan: extractField(content, /Plan:\s*([\s\S]*?)(?=\n\s*\n|$)/)
                 };
+
+                // Extract section-specific medication fields
+                if (section.name === 'GI') {
+                    sections[section.name].meds = extractField(content, /GI ppx:\s*(.+?)(?=\n|$)/);
+                } else if (section.name === 'RENAL/FLUIDS') {
+                    sections[section.name].meds = extractField(content, /IVF:\s*(.+?)(?=\n|$)/);
+                } else if (section.name === 'HEME') {
+                    sections[section.name].meds = extractField(content, /DVT ppx:\s*(.+?)(?=\n|$)/);
+                } else {
+                    sections[section.name].meds = extractField(content, /Meds:\s*(.+?)(?=\n|$)/);
+                }
             }
             
             // Extract DISPO/PT content
@@ -1078,11 +1091,15 @@
             note += `Dx: ${existingSections?.PULM?.dx || 'No Active Issues'}\n`;
             note += `Exam: ${existingSections?.PULM?.exam || 'CTAB, regular rate, Satting >95%'}\n`;
             
-            // O2 method line - always extract from new VIOLIN data
+            // O2 method line - preserve existing if updating, otherwise use new VIOLIN data
             let o2Method = 'O2 method: ';
-            if (labData.o2therapy) {
+            if (existingSections?.PULM?.o2method) {
+                // Preserve existing O2 method when updating
+                o2Method += existingSections.PULM.o2method;
+            } else if (labData.o2therapy) {
+                // Use new VIOLIN data for new notes
                 o2Method += labData.o2therapy;
-                
+
                 // Add vent settings if applicable
                 if (labData.o2therapy === 'Vent' && labData.ventSettings.mode) {
                     const vs = labData.ventSettings;
@@ -1126,7 +1143,18 @@
             note += 'GI:\n';
             note += `Dx: ${existingSections?.GI?.dx || 'No Active Issues'}\n`;
             note += `Exam: ${existingSections?.GI?.exam || 'abd soft, non tender non distended, incisions c/d/i, BMx1'}\n`;
-            note += `Nutrition: ${existingSections?.GI?.nutrition || dietOrder || 'diet order'}\n`;  
+
+            // Preserve existing nutrition when updating, otherwise use new dietOrder
+            let nutritionValue = 'diet order';
+            if (existingSections?.GI?.nutrition) {
+                // Always preserve existing nutrition when updating
+                nutritionValue = existingSections.GI.nutrition;
+            } else if (dietOrder) {
+                // Use new diet order for new notes
+                nutritionValue = dietOrder;
+            }
+            note += `Nutrition: ${nutritionValue}\n`;
+
             note += `GI ppx: ${existingSections?.GI?.meds ? existingSections.GI.meds : formatMeds(meds.gi_ppx)}\n`;
             note += `Bowel reg: ${existingSections?.GI?.bowel || formatMeds(meds.gi_bowel)}\n`;
             note += `Plan: \n${existingSections?.GI?.plan || ''}\n\n`;
@@ -1308,9 +1336,9 @@
                 const gluMin = labData.labs.gluMin;
                 const gluMax = labData.labs.gluMax;
                 if (gluMin < 70 || gluMax > 200) {
-                    bgLine += `${Math.round(gluMin)}-${Math.round(gluMax)}* blood glucose range`;
+                    bgLine += `${Math.round(gluMin)}-${Math.round(gluMax)}*`;
                 } else {
-                    bgLine += `${Math.round(gluMin)}-${Math.round(gluMax)} blood glucose range`;
+                    bgLine += `${Math.round(gluMin)}-${Math.round(gluMax)}`;
                 }
             } else {
                 bgLine += 'blood glucose range';
