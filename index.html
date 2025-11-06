@@ -1336,9 +1336,9 @@
                 const gluMin = labData.labs.gluMin;
                 const gluMax = labData.labs.gluMax;
                 if (gluMin < 70 || gluMax > 200) {
-                    bgLine += `${Math.round(gluMin)}-${Math.round(gluMax)}* blood glucose range`;
+                    bgLine += `${Math.round(gluMin)}-${Math.round(gluMax)}*`;
                 } else {
-                    bgLine += `${Math.round(gluMin)}-${Math.round(gluMax)} blood glucose range`;
+                    bgLine += `${Math.round(gluMin)}-${Math.round(gluMax)}`;
                 }
             } else {
                 bgLine += 'blood glucose range';
