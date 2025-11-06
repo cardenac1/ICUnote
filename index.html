@@ -933,12 +933,15 @@
                 const nextSection = sectionNames[i + 1];
                 const endIndex = nextSection ? nextSection.start : noteText.length;
                 const content = noteText.substring(section.start, endIndex);
-                
+
                 sections[section.name] = {
                     dx: extractField(content, /Dx:\s*(.+?)(?=\n|$)/),
                     exam: extractField(content, /Exam:\s*(.+?)(?=\n[A-Z]|$)/s),
                     access: extractField(content, /Access:\s*(.+?)(?=\n|$)/),
                     o2method: extractField(content, /O2 method:\s*(.+?)(?=\n|$)/),
+                    nutrition: extractField(content, /Nutrition:\s*(.+?)(?=\n|$)/),
+                    meds: extractField(content, /Meds:\s*(.+?)(?=\n|$)/),
+                    bowel: extractField(content, /Bowel reg:\s*(.+?)(?=\n|$)/),
                     plan: extractField(content, /Plan:\s*([\s\S]*?)(?=\n\s*\n|$)/)
                 };
             }
@@ -1126,7 +1129,16 @@
             note += 'GI:\n';
             note += `Dx: ${existingSections?.GI?.dx || 'No Active Issues'}\n`;
             note += `Exam: ${existingSections?.GI?.exam || 'abd soft, non tender non distended, incisions c/d/i, BMx1'}\n`;
-            note += `Nutrition: ${existingSections?.GI?.nutrition || dietOrder || 'diet order'}\n`;  
+
+            // Use existing nutrition if it exists and is not blank/placeholder, otherwise use new dietOrder
+            let nutritionValue = 'diet order';
+            if (existingSections?.GI?.nutrition && existingSections.GI.nutrition.trim() !== '' && existingSections.GI.nutrition !== 'diet order') {
+                nutritionValue = existingSections.GI.nutrition;
+            } else if (dietOrder) {
+                nutritionValue = dietOrder;
+            }
+            note += `Nutrition: ${nutritionValue}\n`;
+
             note += `GI ppx: ${existingSections?.GI?.meds ? existingSections.GI.meds : formatMeds(meds.gi_ppx)}\n`;
             note += `Bowel reg: ${existingSections?.GI?.bowel || formatMeds(meds.gi_bowel)}\n`;
             note += `Plan: \n${existingSections?.GI?.plan || ''}\n\n`;
