@@ -788,9 +788,9 @@
         const [h, m, s] = timeStr.split(':').map(n => parseInt(n, 10));
         return new Date(2000 + yr, mo - 1, day, h, m, s);
     }
-    
+
     const urineEntries = [];
-    
+
     // Look for "Urinary Catheter Output" entries (foley)
     const catheterRegex = /Urinary Catheter Output:.*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
     let match;
@@ -800,7 +800,7 @@
             ts: parseTS(match[1], match[2])
         });
     }
-    
+
     // Look for "Urine Voided" entries
     const voidedRegex = /Urine Voided:.*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
     while ((match = voidedRegex.exec(text)) !== null) {
@@ -809,7 +809,7 @@
             ts: parseTS(match[1], match[2])
         });
     }
-    
+
     // Look for straight catheter entries (if they exist in your system)
     const straightCathRegex = /Straight\s+Cath(?:eter)?.*?Output:.*?\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
     while ((match = straightCathRegex.exec(text)) !== null) {
@@ -818,12 +818,12 @@
             ts: parseTS(match[1], match[2])
         });
     }
-    
+
     // If we found entries, get the latest one
     if (urineEntries.length > 0) {
         urineEntries.sort((a, b) => a.ts - b.ts);
         const latest = urineEntries[urineEntries.length - 1].method;
-        
+
         if (latest === 'foley') {
             return 'foley*';
         } else if (latest === 'straight cath') {
@@ -832,10 +832,83 @@
             return 'void';
         }
     }
-    
+
     // Fallback to default
     return 'void';
 }
+
+        function extractUrineOutputSince7AM(text, weight) {
+            // Helper to parse timestamp
+            function parseTS(dateStr, timeStr) {
+                const [mo, day, yr] = dateStr.split('/').map(n => parseInt(n, 10));
+                const [h, m, s] = timeStr.split(':').map(n => parseInt(n, 10));
+                return new Date(2000 + yr, mo - 1, day, h, m, s);
+            }
+
+            // Get current time
+            const now = new Date();
+
+            // Calculate 7 AM cutoff
+            let cutoffTime = new Date(now);
+            cutoffTime.setHours(7, 0, 0, 0);
+
+            // If current time is before 7 AM, use 7 AM yesterday
+            if (now.getHours() < 7) {
+                cutoffTime.setDate(cutoffTime.getDate() - 1);
+            }
+
+            const urineOutputEntries = [];
+
+            // Look for "Urinary Catheter Output" entries with volumes
+            const catheterRegex = /Urinary Catheter Output:\s*([\d.]+)\s*(?:mL|cc)\s*\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            let match;
+            while ((match = catheterRegex.exec(text)) !== null) {
+                const volume = parseFloat(match[1]);
+                const ts = parseTS(match[2], match[3]);
+                if (ts >= cutoffTime) {
+                    urineOutputEntries.push({ volume, ts });
+                }
+            }
+
+            // Look for "Urine Voided" entries with volumes
+            const voidedRegex = /Urine Voided:\s*([\d.]+)\s*(?:mL|cc)\s*\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            while ((match = voidedRegex.exec(text)) !== null) {
+                const volume = parseFloat(match[1]);
+                const ts = parseTS(match[2], match[3]);
+                if (ts >= cutoffTime) {
+                    urineOutputEntries.push({ volume, ts });
+                }
+            }
+
+            // Look for straight catheter entries with volumes
+            const straightCathRegex = /Straight\s+Cath(?:eter)?.*?Output:\s*([\d.]+)\s*(?:mL|cc)\s*\((\d{2}\/\d{2}\/\d{2})\s+(\d{2}:\d{2}:\d{2})\)/gi;
+            while ((match = straightCathRegex.exec(text)) !== null) {
+                const volume = parseFloat(match[1]);
+                const ts = parseTS(match[2], match[3]);
+                if (ts >= cutoffTime) {
+                    urineOutputEntries.push({ volume, ts });
+                }
+            }
+
+            // Sum up all volumes
+            const totalOutput = urineOutputEntries.reduce((sum, entry) => sum + entry.volume, 0);
+
+            // Calculate hours since 7 AM
+            const hoursSince7AM = (now - cutoffTime) / (1000 * 60 * 60);
+
+            // Calculate cc/kg/hr if weight is available
+            let ccKgHr = null;
+            if (weight && hoursSince7AM > 0) {
+                ccKgHr = totalOutput / hoursSince7AM / weight;
+            }
+
+            return {
+                totalOutput,
+                hoursSince7AM,
+                ccKgHr,
+                cutoffTime
+            };
+        }
         
         // ===== PARSE EXISTING NOTE =====
         
@@ -901,14 +974,15 @@
                 const meds = extractMedicationsBySystem(violinInput);
                 const dietOrder = extractDietOrder(violinInput);
                 const urinaryStatus = extractUrinaryStatus(violinInput);
+                const urineOutputData = extractUrineOutputSince7AM(violinInput, labData.weight);
 
                 // Generate new note with placeholder text
-                const note = buildICUNote(labData, meds, dietOrder, urinaryStatus, null, null);
+                const note = buildICUNote(labData, meds, dietOrder, urinaryStatus, urineOutputData, null, null);
 
                 document.getElementById('noteOutput').textContent = note;
                 document.getElementById('outputSection').style.display = 'block';
                 document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
-                
+
                 showStatus('✨ Note generated successfully!', 'success');
             } catch (error) {
                 console.error('Error generating note:', error);
@@ -937,19 +1011,20 @@
                 const meds = extractMedicationsBySystem(violinInput);
                 const dietOrder = extractDietOrder(violinInput);
                 const urinaryStatus = extractUrinaryStatus(violinInput);
-                
+                const urineOutputData = extractUrineOutputSince7AM(violinInput, labData.weight);
+
                 // Parse existing note to extract preserved sections
                 const existingSections = parseExistingNote(existingNote);
-                
+
                 // Extract previous lab values for comparison
                 const previousLabs = extractPreviousLabs(existingNote);
 
-                const note = buildICUNote(labData, meds, dietOrder, urinaryStatus, existingSections, previousLabs);
+                const note = buildICUNote(labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections, previousLabs);
 
                 document.getElementById('noteOutput').textContent = note;
                 document.getElementById('outputSection').style.display = 'block';
                 document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
-                
+
                 showStatus('✨ Note updated successfully!', 'success');
             } catch (error) {
                 console.error('Error updating note:', error);
@@ -959,26 +1034,30 @@
 
         function extractPreviousLabs(noteText) {
             const prevLabs = {};
-            
+
             // Extract Hgb/Hct
             const hgbMatch = noteText.match(/Hgb\s+([\d.]+)/);
             if (hgbMatch) prevLabs.hgb = parseFloat(hgbMatch[1]);
-            
+
             const hctMatch = noteText.match(/Hct\s+([\d.]+)/);
             if (hctMatch) prevLabs.hct = parseFloat(hctMatch[1]);
-            
+
             // Extract WBC
             const wbcMatch = noteText.match(/WBC\s+([\d.]+)/);
             if (wbcMatch) prevLabs.wbc = parseFloat(wbcMatch[1]);
-            
+
             // Extract PLT
             const pltMatch = noteText.match(/PLT\s+([\d]+)/);
             if (pltMatch) prevLabs.plt = parseInt(pltMatch[1]);
-            
+
+            // Extract INR
+            const inrMatch = noteText.match(/INR\s+([\d.]+)/);
+            if (inrMatch) prevLabs.inr = parseFloat(inrMatch[1]);
+
             return prevLabs;
         }
 
-        function buildICUNote(labData, meds, dietOrder, urinaryStatus, existingSections, previousLabs) {
+        function buildICUNote(labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections, previousLabs) {
             let note = '';
             
             const formatMeds = (medList) => {
@@ -1055,10 +1134,20 @@
             // RENAL/FLUIDS
             note += 'RENAL/FLUIDS:\n';
             note += `Dx: ${existingSections?.['RENAL/FLUIDS']?.dx || 'No Active Issues'}\n`;
-            
+
             let renalExam = `Exam: ${urinaryStatus}, `;
-            
-            if (labData.output && labData.weight) {
+
+            // Use urine output since 7 AM if available
+            if (urineOutputData && urineOutputData.totalOutput > 0 && urineOutputData.ccKgHr !== null) {
+                renalExam += `UOP ${Math.round(urineOutputData.totalOutput)} cc since 7 AM`;
+                const ccKgHr = urineOutputData.ccKgHr.toFixed(1);
+                if (parseFloat(ccKgHr) < 0.5) {
+                    renalExam += ` (${ccKgHr} cc/kg/hr)*, `;
+                } else {
+                    renalExam += ` (${ccKgHr} cc/kg/hr), `;
+                }
+            } else if (labData.output && labData.weight) {
+                // Fallback to 24-hour total if urine output since 7 AM is not available
                 renalExam += `UOP ${Math.round(labData.output)} cc/24 hrs`;
                 const ccKgHr = (labData.output / 24 / labData.weight).toFixed(1);
                 if (parseFloat(ccKgHr) < 0.5) {
@@ -1134,16 +1223,14 @@
             if (labData.labs.hgb) {
                 const hgb = labData.labs.hgb;
                 let hgbStr = hgb < 7 ? `Hgb ${hgb}*` : `Hgb ${hgb}`;
-                
-                // Check if dropped >1 from previous
-                if (previousLabs?.hgb && (previousLabs.hgb - hgb) > 1) {
-                    hgbStr += `* (prev ${previousLabs.hgb})`;
-                } else if (previousLabs?.hgb) {
-                    hgbStr += ` (prev ${previousLabs.hgb})`;
+
+                // Show previous value if abnormal
+                if (hgb < 7 && previousLabs?.hgb) {
+                    hgbStr += ` (${previousLabs.hgb})`;
                 }
                 labsLine += hgbStr + ', ';
             }
-            
+
             if (labData.labs.hct) {
                 const hct = labData.labs.hct;
                 let hctStr = hct < 21 ? `Hct ${hct}*` : `Hct ${hct}`;
@@ -1152,19 +1239,25 @@
                 }
                 labsLine += hctStr + ', ';
             }
-            
+
             if (labData.labs.plt) {
                 const plt = labData.labs.plt;
                 let pltStr = plt < 150 || plt > 400 ? `PLT ${plt}*` : `PLT ${plt}`;
-                if (previousLabs?.plt && Math.abs(previousLabs.plt - plt) > 50) {
-                    pltStr += ` (prev ${previousLabs.plt})`;
+                // Show previous value if abnormal
+                if ((plt < 150 || plt > 400) && previousLabs?.plt) {
+                    pltStr += ` (${previousLabs.plt})`;
                 }
                 labsLine += pltStr + ', ';
             }
-            
+
             if (labData.labs.inr) {
                 const inr = labData.labs.inr;
-                labsLine += `INR ${inr > 1.1 ? inr + '*' : inr}, `;
+                let inrStr = inr > 1.1 ? `INR ${inr}*` : `INR ${inr}`;
+                // Show previous value if abnormal
+                if (inr > 1.1 && previousLabs?.inr) {
+                    inrStr += ` (${previousLabs.inr})`;
+                }
+                labsLine += inrStr + ', ';
             }
             if (labData.labs.pt) {
                 const pt = labData.labs.pt;
@@ -1188,8 +1281,9 @@
             if (labData.labs.wbc) {
                 const wbc = labData.labs.wbc;
                 let wbcStr = wbc < 4.5 || wbc > 11 ? `WBC ${wbc}*` : `WBC ${wbc}`;
-                if (previousLabs?.wbc && Math.abs(previousLabs.wbc - wbc) > 2) {
-                    wbcStr += ` (prev ${previousLabs.wbc})`;
+                // Show previous value if abnormal
+                if ((wbc < 4.5 || wbc > 11) && previousLabs?.wbc) {
+                    wbcStr += ` (${previousLabs.wbc})`;
                 }
                 infectionLine += wbcStr + ', ';
             }
