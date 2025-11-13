@@ -522,24 +522,36 @@
 
             // Find medications section
             let medsMatch = text.match(/Medications.*?\(\d+\)\s*Active\s*\n([\s\S]*?)(?=\n\s*\n|DIET ORDER:|$)/i);
-            
+
             if (!medsMatch) {
                 medsMatch = text.match(/(?:Scheduled:|PRN:|Continuous:)([\s\S]*?)(?=\n\s*\n|DIET ORDER:|$)/i);
             }
-            
+
             if (!medsMatch) {
                 return meds;
             }
 
             const medText = medsMatch[1];
-            const medLines = medText.split('\n').filter(line => line.trim());
 
+            // Check for hypoglycemia protocol (all required components)
+            const hasGlucagon = /glucagon.*?1\s*mg.*?Subcutaneous/i.test(medText);
+            const hasGlucose40Oral15g = /glucose\s+40%.*?Oral.*?15\s*g/i.test(medText);
+            const hasGlucose40Oral30g = /glucose\s+40%.*?Oral.*?30\s*g/i.test(medText);
+            const hasDextrose10_20g = /Dextrose\s+10%.*?20\s*g.*?IV\s+Bolus/i.test(medText);
+            const hasDextrose10_10g = /Dextrose\s+10%.*?10\s*g.*?IV\s+Bolus/i.test(medText);
+            const hasDextrose10_250mL = /Dextrose\s+10%.*?250\s*mL.*?IV\s+Piggyback/i.test(medText);
+            const hasDextrose10_1000mL = /Dextrose\s+10%.*?1,?000\s*mL.*?IV\s+Piggyback/i.test(medText);
+
+            const hasHypoglycemiaProtocol = hasGlucagon && hasGlucose40Oral15g && hasGlucose40Oral30g &&
+                                           hasDextrose10_20g && hasDextrose10_10g && hasDextrose10_250mL && hasDextrose10_1000mL;
+
+            const medLines = medText.split('\n').filter(line => line.trim());
             let currentType = null;
-            
+
             for (const line of medLines) {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
-                
+
                 if (trimmed.match(/^Scheduled:/i)) {
                     currentType = 'scheduled';
                     continue;
@@ -553,10 +565,25 @@
                     continue;
                 }
 
+                // Skip hypoglycemia protocol individual lines if we detected the full protocol
+                if (hasHypoglycemiaProtocol) {
+                    const lineLower = trimmed.toLowerCase();
+                    if (lineLower.includes('glucagon') ||
+                        (lineLower.includes('glucose') && lineLower.includes('40%') && lineLower.includes('oral')) ||
+                        (lineLower.includes('dextrose') && lineLower.includes('10%'))) {
+                        continue;
+                    }
+                }
+
                 const med = parseMedicationLine(trimmed, currentType);
                 if (med) {
                     categorizeMed(med, meds);
                 }
+            }
+
+            // Add hypoglycemia protocol as single entry if detected
+            if (hasHypoglycemiaProtocol) {
+                meds.endo.push('Hypoglycemia Protocol');
             }
 
             return meds;
@@ -564,10 +591,31 @@
 
         function parseMedicationLine(line, medType) {
             const lineLower = line.toLowerCase();
-            
+
             if (!line || line.length < 3) return null;
-            
+
             // Check for insulin sliding scale
+            if (lineLower.includes('insulin') && (lineLower.includes('lispro') || lineLower.includes('aspart') || lineLower.includes('regular'))) {
+                // Look for sliding scale pattern like "0-20 units" or "0-10 units"
+                const slidingScaleMatch = line.match(/0\s*-\s*(\d+)\s*units?/i);
+                if (slidingScaleMatch) {
+                    const maxUnits = parseInt(slidingScaleMatch[1]);
+                    // Extract frequency
+                    let frequency = '';
+                    const freqMatch = line.match(/every\s+(\d+)\s+hours?/i);
+                    if (freqMatch) {
+                        frequency = ` Q${freqMatch[1]}H`;
+                    }
+
+                    if (maxUnits > 10) {
+                        return { name: `ISS-R${frequency}`, category: 'endo', fullName: 'Insulin Sliding Scale - Resistant' };
+                    } else {
+                        return { name: `ISS-N${frequency}`, category: 'endo', fullName: 'Insulin Sliding Scale - Normal' };
+                    }
+                }
+            }
+
+            // Check for traditional sliding scale wording
             if (lineLower.includes('insulin') && (lineLower.includes('sliding scale') || lineLower.includes('scale'))) {
                 return { name: 'ISS', category: 'endo', fullName: line };
             }
@@ -664,6 +712,35 @@
                 dose = allDoses[allDoses.length - 1];
             }
 
+            // Extract route
+            let route = '';
+            const routeMatch = line.match(/\b(PO|IV|IM|Subcutaneous|SubQ|SL|Sublingual|PR|Rectal|Topical|Transdermal|Inhalation|Nasal|Ophthalmic|Otic|Oral|Injectable|Intravenous|IV Bolus|IV Piggyback|Intramuscular)\b/i);
+            if (routeMatch) {
+                let routeRaw = routeMatch[1];
+                // Standardize route abbreviations
+                if (/^Subcutaneous$/i.test(routeRaw) || /^SubQ$/i.test(routeRaw)) {
+                    route = 'SC';
+                } else if (/^Sublingual$/i.test(routeRaw)) {
+                    route = 'SL';
+                } else if (/^Rectal$/i.test(routeRaw)) {
+                    route = 'PR';
+                } else if (/^Oral$/i.test(routeRaw)) {
+                    route = 'PO';
+                } else if (/^Injectable$/i.test(routeRaw)) {
+                    route = 'INJ';
+                } else if (/^Intravenous$/i.test(routeRaw)) {
+                    route = 'IV';
+                } else if (/^IV Bolus$/i.test(routeRaw)) {
+                    route = 'IV';
+                } else if (/^IV Piggyback$/i.test(routeRaw)) {
+                    route = 'IV';
+                } else if (/^Intramuscular$/i.test(routeRaw)) {
+                    route = 'IM';
+                } else {
+                    route = routeRaw.toUpperCase();
+                }
+            }
+
             // Extract frequency
             let frequency = '';
             let freqMatch = line.match(/\b(Q\d+H?|BID|TID|QID|QD|QHS|PRN)\b/i);
@@ -694,6 +771,7 @@
             const abbrev = abbreviateMedication(drugName);
             let medString = abbrev;
             if (dose) medString += ` ${dose}`;
+            if (route) medString += ` ${route}`;
             if (frequency) medString += ` ${frequency}`;
 
             return { name: medString, fullName: drugName, category: null };
