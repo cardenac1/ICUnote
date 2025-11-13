@@ -274,7 +274,7 @@
             'levetiracetam': 'Keppra', 'phenytoin': 'Dilantin', 'valproic acid': 'Depakote',
             'gabapentin': 'Neurontin', 'pregabalin': 'Lyrica', 'haloperidol': 'Haldol',
             'quetiapine': 'Seroquel', 'olanzapine': 'Zyprexa', 'trazodone': 'Trazodone',
-            'cyclobenzaprine': 'Flexeril', 'baclofen': 'Baclofen', 'clobazam': 'Clobazam', 'brivaracetam': 'Brivaracetam', 'lacosamide': 'Lacosamide', 
+            'cyclobenzaprine': 'Flexeril', 'baclofen': 'Baclofen', 'clobazam': 'Clobazam', 'brivaracetam': 'Brivaracetam', 'lacosamide': 'Lacosamide', 'methocarbomol': 'robaxin'
             
             // Endocrine
             'insulin lispro': 'Lispro', 'insulin aspart': 'Aspart',
@@ -763,7 +763,7 @@
             const nameLower = (med.fullName || med.name).toLowerCase();
 
             // Pain meds and sedation -> neuro
-            if (/hydromorphone|dilaudid|oxycodone|morphine|fentanyl|acetaminophen|tylenol|propofol|midazolam|versed|dexmedetomidine|precedex|prec|lorazepam|ativan|diazepam|ketamine|levetiracetam|keppra|gabapentin|neurontin|pregabalin|lyrica|phenytoin|dilantin|valproic|depakote|haloperidol|haldol|quetiapine|seroquel|olanzapine|zyprexa|trazodone|cyclobenzaprine|flexeril|baclofen/i.test(nameLower)) {
+            if (/hydromorphone|dilaudid|oxycodone|morphine|fentanyl|acetaminophen|tylenol|propofol|midazolam|versed|dexmedetomidine|precedex|prec|lorazepam|ativan|diazepam|ketamine|levetiracetam|keppra|gabapentin|neurontin|pregabalin|lyrica|phenytoin|dilantin|valproic|depakote|haloperidol|haldol|quetiapine|seroquel|olanzapine|zyprexa|trazodone|cyclobenzaprine|flexeril|baclofen|methocarbomol|sertraline|melatonin/i.test(nameLower)) {
                 meds.neuro.push(med.name);
             }
             // Pulmonary
