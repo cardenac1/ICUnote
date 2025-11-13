@@ -274,7 +274,7 @@
             'levetiracetam': 'Keppra', 'phenytoin': 'Dilantin', 'valproic acid': 'Depakote',
             'gabapentin': 'Neurontin', 'pregabalin': 'Lyrica', 'haloperidol': 'Haldol',
             'quetiapine': 'Seroquel', 'olanzapine': 'Zyprexa', 'trazodone': 'Trazodone',
-            'cyclobenzaprine': 'Flexeril', 'baclofen': 'Baclofen', 'clobazam': 'Clobazam', 'brivaracetam': 'Brivaracetam', 'lacosamide': 'Lacosamide', 'methocarbomol': 'robaxin'
+            'cyclobenzaprine': 'Flexeril', 'baclofen': 'Baclofen', 'methocarbamol': 'Robaxin', 'clobazam': 'Clobazam', 'brivaracetam': 'Brivaracetam', 'lacosamide': 'Lacosamide', 
             
             // Endocrine
             'insulin lispro': 'Lispro', 'insulin aspart': 'Aspart',
@@ -539,7 +539,7 @@
             for (const line of medLines) {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
-
+                
                 if (trimmed.match(/^Scheduled:/i)) {
                     currentType = 'scheduled';
                     continue;
@@ -559,46 +559,7 @@
                 }
             }
 
-            // Check for hypoglycemia protocol and group medications
-            detectHypoglycemiaProtocol(meds);
-
             return meds;
-        }
-
-        function detectHypoglycemiaProtocol(meds) {
-            // Check all medication categories for hypoglycemia protocol components
-            let hasGlucagon = false;
-            let hasGlucose = false;
-            let hasDextrose = false;
-
-            const allCategories = [...meds.endo, ...meds.other, ...meds.renal];
-
-            for (const med of allCategories) {
-                const medLower = med.toLowerCase();
-                if (medLower.includes('glucagon')) hasGlucagon = true;
-                if (medLower.includes('glucose') && medLower.includes('40%')) hasGlucose = true;
-                if (medLower.includes('dextrose') && medLower.includes('10%')) hasDextrose = true;
-            }
-
-            // If we have all components, replace with "Hypoglycemia Protocol"
-            if (hasGlucagon && hasGlucose && hasDextrose) {
-                // Remove hypoglycemia protocol medications from all categories
-                const removeHypoMeds = (medList) => {
-                    return medList.filter(med => {
-                        const medLower = med.toLowerCase();
-                        return !(medLower.includes('glucagon') ||
-                                (medLower.includes('glucose') && medLower.includes('40%')) ||
-                                (medLower.includes('dextrose') && medLower.includes('10%')));
-                    });
-                };
-
-                meds.endo = removeHypoMeds(meds.endo);
-                meds.other = removeHypoMeds(meds.other);
-                meds.renal = removeHypoMeds(meds.renal);
-
-                // Add "Hypoglycemia Protocol" to endo
-                meds.endo.push('Hypoglycemia Protocol');
-            }
         }
 
         function parseMedicationLine(line, medType) {
@@ -606,23 +567,9 @@
             
             if (!line || line.length < 3) return null;
             
-            // Check for insulin sliding scale with unit ranges
+            // Check for insulin sliding scale
             if (lineLower.includes('insulin') && (lineLower.includes('sliding scale') || lineLower.includes('scale'))) {
                 return { name: 'ISS', category: 'endo', fullName: line };
-            }
-
-            // Check for insulin lispro/HumaLOG with unit ranges (ISS-R vs ISS-N)
-            if (lineLower.includes('insulin') && (lineLower.includes('lispro') || lineLower.includes('humalog'))) {
-                // Look for unit range pattern like "0-20 units" or "0-10 units"
-                const unitRangeMatch = line.match(/(\d+)-(\d+)\s*units?/i);
-                if (unitRangeMatch) {
-                    const maxUnits = parseInt(unitRangeMatch[2]);
-                    if (maxUnits >= 20) {
-                        return { name: 'ISS-R', category: 'endo', fullName: line };
-                    } else if (maxUnits >= 10) {
-                        return { name: 'ISS-N', category: 'endo', fullName: line };
-                    }
-                }
             }
 
             // Check for continuous infusions (pressors, sedation)
@@ -692,14 +639,24 @@
             // Extract dose (skip concentrations)
             let dose = '';
             const allDoses = [];
-            const doseRegex = /(\d+(?:\.\d+)?)\s*(mcg|mg|g|units?)\b/gi;
+            // Updated regex to handle numbers with commas or spaces (e.g., "1,000mg" or "1 000mg")
+            const doseRegex = /(\d+(?:[,\s]\d+)*(?:\.\d+)?)\s*(mcg|mg|g|units?)\b/gi;
             let doseMatch;
-            
+
             while ((doseMatch = doseRegex.exec(line)) !== null) {
                 const afterDose = line.substring(doseMatch.index + doseMatch[0].length, doseMatch.index + doseMatch[0].length + 10);
-                
+
                 if (!afterDose.match(/^\s*\/\s*(mL|kg|min|hr)/i)) {
-                    allDoses.push(doseMatch[1] + doseMatch[2]);
+                    // Clean up the number by removing commas and spaces
+                    const cleanNumber = doseMatch[1].replace(/[,\s]/g, '');
+                    const unit = doseMatch[2];
+
+                    // Convert large mg doses to grams for readability (e.g., 1000mg -> 1g)
+                    if (unit === 'mg' && parseInt(cleanNumber) >= 1000 && parseInt(cleanNumber) % 1000 === 0) {
+                        allDoses.push((parseInt(cleanNumber) / 1000) + 'g');
+                    } else {
+                        allDoses.push(cleanNumber + unit);
+                    }
                 }
             }
             
@@ -763,7 +720,7 @@
             const nameLower = (med.fullName || med.name).toLowerCase();
 
             // Pain meds and sedation -> neuro
-            if (/hydromorphone|dilaudid|oxycodone|morphine|fentanyl|acetaminophen|tylenol|propofol|midazolam|versed|dexmedetomidine|precedex|prec|lorazepam|ativan|diazepam|ketamine|levetiracetam|keppra|gabapentin|neurontin|pregabalin|lyrica|phenytoin|dilantin|valproic|depakote|haloperidol|haldol|quetiapine|seroquel|olanzapine|zyprexa|trazodone|cyclobenzaprine|flexeril|baclofen|methocarbomol|sertraline|melatonin/i.test(nameLower)) {
+            if (/hydromorphone|dilaudid|oxycodone|morphine|fentanyl|acetaminophen|tylenol|propofol|midazolam|versed|dexmedetomidine|precedex|prec|lorazepam|ativan|diazepam|ketamine|levetiracetam|keppra|gabapentin|neurontin|pregabalin|lyrica|phenytoin|dilantin|valproic|depakote|haloperidol|haldol|quetiapine|seroquel|olanzapine|zyprexa|trazodone|cyclobenzaprine|flexeril|baclofen|methocarbamol|robaxin/i.test(nameLower)) {
                 meds.neuro.push(med.name);
             }
             // Pulmonary
