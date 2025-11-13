@@ -639,14 +639,24 @@
             // Extract dose (skip concentrations)
             let dose = '';
             const allDoses = [];
-            const doseRegex = /(\d+(?:\.\d+)?)\s*(mcg|mg|g|units?)\b/gi;
+            // Updated regex to handle numbers with commas or spaces (e.g., "1,000mg" or "1 000mg")
+            const doseRegex = /(\d+(?:[,\s]\d+)*(?:\.\d+)?)\s*(mcg|mg|g|units?)\b/gi;
             let doseMatch;
-            
+
             while ((doseMatch = doseRegex.exec(line)) !== null) {
                 const afterDose = line.substring(doseMatch.index + doseMatch[0].length, doseMatch.index + doseMatch[0].length + 10);
-                
+
                 if (!afterDose.match(/^\s*\/\s*(mL|kg|min|hr)/i)) {
-                    allDoses.push(doseMatch[1] + doseMatch[2]);
+                    // Clean up the number by removing commas and spaces
+                    const cleanNumber = doseMatch[1].replace(/[,\s]/g, '');
+                    const unit = doseMatch[2];
+
+                    // Convert large mg doses to grams for readability (e.g., 1000mg -> 1g)
+                    if (unit === 'mg' && parseInt(cleanNumber) >= 1000 && parseInt(cleanNumber) % 1000 === 0) {
+                        allDoses.push((parseInt(cleanNumber) / 1000) + 'g');
+                    } else {
+                        allDoses.push(cleanNumber + unit);
+                    }
                 }
             }
             
