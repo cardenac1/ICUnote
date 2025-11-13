@@ -607,6 +607,11 @@
                         frequency = ` Q${freqMatch[1]}H`;
                     }
 
+                    // Add PRN if this is a PRN medication
+                    if (medType === 'prn' && !frequency.includes('PRN')) {
+                        frequency = frequency ? `${frequency} PRN` : ' PRN';
+                    }
+
                     if (maxUnits > 10) {
                         return { name: `ISS-R${frequency}`, category: 'endo', fullName: 'Insulin Sliding Scale - Resistant' };
                     } else {
@@ -617,7 +622,8 @@
 
             // Check for traditional sliding scale wording
             if (lineLower.includes('insulin') && (lineLower.includes('sliding scale') || lineLower.includes('scale'))) {
-                return { name: 'ISS', category: 'endo', fullName: line };
+                const issName = medType === 'prn' ? 'ISS PRN' : 'ISS';
+                return { name: issName, category: 'endo', fullName: line };
             }
 
             // Check for continuous infusions (pressors, sedation)
@@ -764,6 +770,14 @@
                     } else if (line.match(/at\s+bedtime/i)) {
                         frequency = 'QHS';
                     }
+                }
+            }
+
+            // Ensure PRN medications are labeled as PRN
+            if (medType === 'prn') {
+                // If frequency doesn't already contain PRN, add it
+                if (!frequency || !frequency.includes('PRN')) {
+                    frequency = frequency ? `${frequency} PRN` : 'PRN';
                 }
             }
 
@@ -1244,7 +1258,7 @@
             note += `Nutrition: ${nutritionValue}\n`;
 
             note += `GI ppx: ${existingSections?.GI?.meds ? existingSections.GI.meds : formatMeds(meds.gi_ppx)}\n`;
-            note += `Bowel reg: ${existingSections?.GI?.bowel || formatMeds(meds.gi_bowel)}\n`;
+            note += `Bowel reg/meds: ${existingSections?.GI?.bowel || formatMeds(meds.gi_bowel)}\n`;
             note += `Plan: \n${existingSections?.GI?.plan || ''}\n\n`;
 
             // RENAL/FLUIDS
@@ -1328,7 +1342,7 @@
             }
             note += electroLine + '\n';
             
-            note += `IVF: ${existingSections?.['RENAL/FLUIDS']?.meds || formatMeds(meds.renal)}\n`;
+            note += `Meds/IVF: ${existingSections?.['RENAL/FLUIDS']?.meds || formatMeds(meds.renal)}\n`;
             note += `Plan: \n${existingSections?.['RENAL/FLUIDS']?.plan || ''}\n\n`;
 
             // HEME
