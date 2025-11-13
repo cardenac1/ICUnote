@@ -539,7 +539,7 @@
             for (const line of medLines) {
                 const trimmed = line.trim();
                 if (!trimmed) continue;
-                
+
                 if (trimmed.match(/^Scheduled:/i)) {
                     currentType = 'scheduled';
                     continue;
@@ -559,7 +559,46 @@
                 }
             }
 
+            // Check for hypoglycemia protocol and group medications
+            detectHypoglycemiaProtocol(meds);
+
             return meds;
+        }
+
+        function detectHypoglycemiaProtocol(meds) {
+            // Check all medication categories for hypoglycemia protocol components
+            let hasGlucagon = false;
+            let hasGlucose = false;
+            let hasDextrose = false;
+
+            const allCategories = [...meds.endo, ...meds.other, ...meds.renal];
+
+            for (const med of allCategories) {
+                const medLower = med.toLowerCase();
+                if (medLower.includes('glucagon')) hasGlucagon = true;
+                if (medLower.includes('glucose') && medLower.includes('40%')) hasGlucose = true;
+                if (medLower.includes('dextrose') && medLower.includes('10%')) hasDextrose = true;
+            }
+
+            // If we have all components, replace with "Hypoglycemia Protocol"
+            if (hasGlucagon && hasGlucose && hasDextrose) {
+                // Remove hypoglycemia protocol medications from all categories
+                const removeHypoMeds = (medList) => {
+                    return medList.filter(med => {
+                        const medLower = med.toLowerCase();
+                        return !(medLower.includes('glucagon') ||
+                                (medLower.includes('glucose') && medLower.includes('40%')) ||
+                                (medLower.includes('dextrose') && medLower.includes('10%')));
+                    });
+                };
+
+                meds.endo = removeHypoMeds(meds.endo);
+                meds.other = removeHypoMeds(meds.other);
+                meds.renal = removeHypoMeds(meds.renal);
+
+                // Add "Hypoglycemia Protocol" to endo
+                meds.endo.push('Hypoglycemia Protocol');
+            }
         }
 
         function parseMedicationLine(line, medType) {
@@ -567,9 +606,23 @@
             
             if (!line || line.length < 3) return null;
             
-            // Check for insulin sliding scale
+            // Check for insulin sliding scale with unit ranges
             if (lineLower.includes('insulin') && (lineLower.includes('sliding scale') || lineLower.includes('scale'))) {
                 return { name: 'ISS', category: 'endo', fullName: line };
+            }
+
+            // Check for insulin lispro/HumaLOG with unit ranges (ISS-R vs ISS-N)
+            if (lineLower.includes('insulin') && (lineLower.includes('lispro') || lineLower.includes('humalog'))) {
+                // Look for unit range pattern like "0-20 units" or "0-10 units"
+                const unitRangeMatch = line.match(/(\d+)-(\d+)\s*units?/i);
+                if (unitRangeMatch) {
+                    const maxUnits = parseInt(unitRangeMatch[2]);
+                    if (maxUnits >= 20) {
+                        return { name: 'ISS-R', category: 'endo', fullName: line };
+                    } else if (maxUnits >= 10) {
+                        return { name: 'ISS-N', category: 'endo', fullName: line };
+                    }
+                }
             }
 
             // Check for continuous infusions (pressors, sedation)
