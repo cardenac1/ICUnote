@@ -617,10 +617,43 @@
                 const unitRangeMatch = line.match(/(\d+)-(\d+)\s*units?/i);
                 if (unitRangeMatch) {
                     const maxUnits = parseInt(unitRangeMatch[2]);
+                    let issType = '';
+
                     if (maxUnits >= 20) {
-                        return { name: 'ISS-R', category: 'endo', fullName: line };
+                        issType = 'ISS-R';
                     } else if (maxUnits >= 10) {
-                        return { name: 'ISS-N', category: 'endo', fullName: line };
+                        issType = 'ISS-N';
+                    }
+
+                    if (issType) {
+                        // Extract frequency
+                        let frequency = '';
+                        let freqMatch = line.match(/\b(Q\d+H?|BID|TID|QID|QD|QHS|PRN)\b/i);
+                        if (freqMatch) {
+                            frequency = freqMatch[1].toUpperCase();
+                        } else {
+                            if (line.match(/\bdaily\b/i) || line.match(/once\s+(a|per)?\s*day/i)) {
+                                frequency = 'QD';
+                            } else if (line.match(/4\s+times?\s+(a|per)?\s*day/i)) {
+                                frequency = 'QID';
+                            } else if (line.match(/3\s+times?\s+(a|per)?\s*day/i)) {
+                                frequency = 'TID';
+                            } else if (line.match(/(?:2\s+times?|twice)\s+(a|per)?\s*day/i)) {
+                                frequency = 'BID';
+                            } else {
+                                const everyMatch = line.match(/every\s+(\d+)\s+(?:hours?|hr)/i);
+                                if (everyMatch) {
+                                    frequency = `Q${everyMatch[1]}H`;
+                                } else if (line.match(/as\s+needed|when\s+needed/i)) {
+                                    frequency = 'PRN';
+                                } else if (line.match(/at\s+bedtime/i)) {
+                                    frequency = 'QHS';
+                                }
+                            }
+                        }
+
+                        const name = frequency ? `${issType} ${frequency}` : issType;
+                        return { name: name, category: 'endo', fullName: line };
                     }
                 }
             }
