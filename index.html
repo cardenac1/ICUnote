@@ -1591,6 +1591,7 @@ function buildEditableSystems(labData, meds, dietOrder, urinaryStatus, urineOutp
 
     return `<div class="systems-toolbar">
         <span class="hint">Click any field to edit</span>
+        <button onclick="loadPriorNoteIntoSystems()" style="padding:0.3rem 0.75rem;font-size:0.78rem;background:linear-gradient(135deg,#7c3aed,#4f46e5);">📂 Load Prior Note Fields</button>
         <button onclick="compileFromSystems()" class="success" style="padding:0.3rem 0.75rem;font-size:0.78rem;">📝 Compile to Text Note</button>
         <button onclick="copySystemsNote()" style="padding:0.3rem 0.75rem;font-size:0.78rem;">📋 Copy Note</button>
     </div>
@@ -1687,6 +1688,67 @@ function copySystemsNote() {
         showStatus('❌ Failed to copy note', 'error');
         showSystemsView();
     });
+}
+
+function loadPriorNoteIntoSystems() {
+    const priorText = document.getElementById('existingNote').value.trim();
+    if (!priorText) { showStatus('Paste a prior note in the "Existing Note" box first!', 'error'); return; }
+
+    const s = parseExistingNote(priorText);
+
+    function setField(id, value) {
+        if (!value) return;
+        const el = document.getElementById(id);
+        if (el) el.innerText = value;
+    }
+
+    setField('sys-neuro-dx',   s?.NEURO?.dx);
+    setField('sys-neuro-exam', s?.NEURO?.exam);
+    setField('sys-neuro-plan', s?.NEURO?.plan);
+    if (s?.NEURO?.meds)        setField('sys-neuro-meds', s.NEURO.meds);
+
+    setField('sys-pulm-dx',   s?.PULM?.dx);
+    setField('sys-pulm-exam', s?.PULM?.exam);
+    setField('sys-pulm-o2',   s?.PULM?.o2method);
+    setField('sys-pulm-plan', s?.PULM?.plan);
+    if (s?.PULM?.meds)        setField('sys-pulm-meds', s.PULM.meds);
+
+    setField('sys-cv-dx',     s?.CV?.dx);
+    setField('sys-cv-exam',   s?.CV?.exam);
+    setField('sys-cv-access', s?.CV?.access);
+    setField('sys-cv-plan',   s?.CV?.plan);
+    if (s?.CV?.meds)          setField('sys-cv-meds', s.CV.meds);
+
+    setField('sys-gi-dx',        s?.GI?.dx);
+    setField('sys-gi-exam',      s?.GI?.exam);
+    setField('sys-gi-nutrition', s?.GI?.nutrition);
+    setField('sys-gi-plan',      s?.GI?.plan);
+    if (s?.GI?.meds)             setField('sys-gi-ppx', s.GI.meds);
+    if (s?.GI?.bowel)            setField('sys-gi-bowel', s.GI.bowel);
+
+    setField('sys-renal-dx',   s?.['RENAL/FLUIDS']?.dx);
+    setField('sys-renal-plan', s?.['RENAL/FLUIDS']?.plan);
+    if (s?.['RENAL/FLUIDS']?.meds) setField('sys-renal-meds', s['RENAL/FLUIDS'].meds);
+
+    setField('sys-heme-dx',   s?.HEME?.dx);
+    setField('sys-heme-plan', s?.HEME?.plan);
+    if (s?.HEME?.meds)        setField('sys-heme-meds', s.HEME.meds);
+
+    setField('sys-inf-dx',   s?.INFECTION?.dx);
+    setField('sys-inf-plan', s?.INFECTION?.plan);
+    if (s?.INFECTION?.meds)  setField('sys-inf-meds', s.INFECTION.meds);
+
+    setField('sys-endo-dx',   s?.ENDO?.dx);
+    setField('sys-endo-plan', s?.ENDO?.plan);
+    if (s?.ENDO?.meds)        setField('sys-endo-meds', s.ENDO.meds);
+
+    setField('sys-misc-dx',   s?.['SKIN/OTHER']?.dx);
+    setField('sys-misc-plan', s?.['SKIN/OTHER']?.plan);
+    if (s?.['SKIN/OTHER']?.meds) setField('sys-misc-meds', s['SKIN/OTHER'].meds);
+
+    setField('sys-dispo-content', s?.['DISPO/PT']?.content);
+
+    showStatus('✅ Prior note fields loaded into Systems cards!', 'success');
 }
 
 // ===== UTILITY =====
