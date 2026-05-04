@@ -928,9 +928,11 @@ function parseExistingNote(noteText) {
             plan: extractField(content, /Plan:\s*([\s\S]*?)(?=\n\s*\n|$)/)
         };
         if (section.name === 'GI') sections[section.name].meds = extractField(content, /GI ppx:\s*(.+?)(?=\n|$)/);
-        else if (section.name === 'RENAL/FLUIDS') sections[section.name].meds = extractField(content, /IVF:\s*(.+?)(?=\n|$)/);
+        else if (section.name === 'RENAL/FLUIDS') sections[section.name].meds = extractField(content, /(?:Meds\/IVF|IVF):\s*(.+?)(?=\n|$)/);
         else if (section.name === 'HEME') sections[section.name].meds = extractField(content, /DVT ppx:\s*(.+?)(?=\n|$)/);
-        else sections[section.name].meds = extractField(content, /Meds:\s*(.+?)(?=\n|$)/);
+        else sections[section.name].meds = extractField(content, /(?:Meds\/TDDI|Meds):\s*(.+?)(?=\n|$)/);
+        if (section.name === 'HEME') sections[section.name].labs = extractField(content, /Labs:\s*(.+?)(?=\n|$)/);
+        if (section.name === 'INFECTION') sections[section.name].cx = extractField(content, /Cx:\s*(.+?)(?=\n|$)/);
     }
     const dispoMatch = noteText.match(/DISPO\/PT:\s*([\s\S]*?)$/);
     if (dispoMatch) sections['DISPO/PT'] = { content: dispoMatch[1].trim() };
@@ -1068,7 +1070,7 @@ function buildDashboard(labData, meds, dietOrder, urinaryStatus, urineOutputData
         minO2 ? { label:'O2 Sat', value: `${minO2}%${minO2 < 92 ? '*' : ''}`, alert: minO2 < 92 } : null,
         { label:'O2 Rx', value: o2Val },
     ];
-    const pulmCard = card('PULM', '#60a5fa', pulmRows, meds.pulm);
+    const pulmCard = card('🫁 PULM', '#60a5fa', pulmRows, meds.pulm);
 
     // ── CV ──
     let mapStr = 'MAP >65';
@@ -1189,7 +1191,7 @@ function buildDashboard(labData, meds, dietOrder, urinaryStatus, urineOutputData
     if (L.lipase) miscLabParts.push(`Lipase ${L.lipase > 60 ? L.lipase+'*' : L.lipase}`);
     if (L.albumin_lab) miscLabParts.push(`Albumin ${L.albumin_lab < 3.5 ? L.albumin_lab+'*' : L.albumin_lab}`);
     const miscRows = [
-        { label:'Dx', value: existingSections?.['SKIN/OTHER']?.dx || 'No Active Issues' },
+        { label:'Dx', value: existingSections?.['SKIN/MISC']?.dx || 'No Active Issues' },
         miscLabParts.length > 0 ? { label:'Labs', value: miscLabParts.join(', '), alert: miscLabParts.some(p=>p.includes('*')) } : null,
         { label:'Mon', value: 'BMP/CBC q12 · Daily weights · I&Os' },
     ];
@@ -1348,8 +1350,8 @@ function buildICUNote(labData, meds, dietOrder, urinaryStatus, urineOutputData, 
     note += `Plan: \n${existingSections?.ENDO?.plan || ''}\n\n`;
 
     note += 'SKIN/MISC:\n';
-    note += `Dx: ${existingSections?.['SKIN/OTHER']?.dx || 'No Active Issues'}\n`;
-    note += `Meds: ${existingSections?.['SKIN/OTHER']?.meds || formatMeds(meds.other)}\n`;
+    note += `Dx: ${existingSections?.['SKIN/MISC']?.dx || 'No Active Issues'}\n`;
+    note += `Meds: ${existingSections?.['SKIN/MISC']?.meds || formatMeds(meds.other)}\n`;
     // Additional labs in text note
     let miscLabLine = 'Labs: ';
     if (L.lactate) miscLabLine += `Lactate ${L.lactate>2?L.lactate+'*':L.lactate}, `;
@@ -1360,7 +1362,7 @@ function buildICUNote(labData, meds, dietOrder, urinaryStatus, urineOutputData, 
     if (L.bnp) miscLabLine += `BNP ${L.bnp>100?L.bnp+'*':L.bnp}, `;
     if (miscLabLine !== 'Labs: ') note += miscLabLine.replace(/,\s*$/, '') + '\n';
     else note += 'Labs: BMP/CBC q12\n';
-    note += `Plan: \n${existingSections?.['SKIN/OTHER']?.plan || ''}\n\n`;
+    note += `Plan: \n${existingSections?.['SKIN/MISC']?.plan || ''}\n\n`;
 
     note += 'DISPO/PT:\n';
     note += `${existingSections?.['DISPO/PT']?.content || 'ICU, PTOT OOB'}\n`;
@@ -1442,7 +1444,7 @@ function buildEditableSystems(labData, meds, dietOrder, urinaryStatus, urineOutp
         const vs = labData.ventSettings;
         o2Val = `Vent ${vs.mode}${vs.rate ? ` RR${vs.rate}` : ''}${vs.tv ? `/Vt${vs.tv}` : ''}${vs.fio2 ? `/FiO2${vs.fio2}%` : ''}${vs.peep ? `/PEEP${vs.peep}` : ''}`;
     }
-    const pulmCard = editCard('sys-pulm', 'PULM', '#60a5fa', [
+    const pulmCard = editCard('sys-pulm', '🫁 PULM', '#60a5fa', [
         { label:'Dx',   key:'dx',   value: existingSections?.PULM?.dx   || 'No Active Issues' },
         { label:'Exam', key:'exam', value: existingSections?.PULM?.exam || 'CTAB, regular rate, Satting >95%', multi:true },
         { label:'O2',   key:'o2',   value: o2Val },
@@ -1571,11 +1573,11 @@ function buildEditableSystems(labData, meds, dietOrder, urinaryStatus, urineOutp
     if (L.lipase)     miscLabParts.push(`Lipase ${L.lipase>60?L.lipase+'*':L.lipase}`);
     if (L.albumin_lab) miscLabParts.push(`Albumin ${L.albumin_lab<3.5?L.albumin_lab+'*':L.albumin_lab}`);
     const miscCard = editCard('sys-misc', 'SKIN / MISC', '#9ca3af', [
-        { label:'Dx',   key:'dx',   value: existingSections?.['SKIN/OTHER']?.dx   || 'No Active Issues' },
+        { label:'Dx',   key:'dx',   value: existingSections?.['SKIN/MISC']?.dx   || 'No Active Issues' },
         { label:'Labs', key:'labs', value: miscLabParts.join(', ') || 'BMP/CBC q12' },
-        { label:'Meds', key:'meds', value: existingSections?.['SKIN/OTHER']?.meds || fmt(meds.other) },
+        { label:'Meds', key:'meds', value: existingSections?.['SKIN/MISC']?.meds || fmt(meds.other) },
         { sep: true },
-        { label:'Plan', key:'plan', value: existingSections?.['SKIN/OTHER']?.plan || '', multi:true },
+        { label:'Plan', key:'plan', value: existingSections?.['SKIN/MISC']?.plan || '', multi:true },
     ]);
 
     // DISPO/PT
@@ -1731,10 +1733,12 @@ function loadPriorNoteIntoSystems() {
     if (s?.['RENAL/FLUIDS']?.meds) setField('sys-renal-meds', s['RENAL/FLUIDS'].meds);
 
     setField('sys-heme-dx',   s?.HEME?.dx);
+    setField('sys-heme-labs', s?.HEME?.labs);
     setField('sys-heme-plan', s?.HEME?.plan);
     if (s?.HEME?.meds)        setField('sys-heme-meds', s.HEME.meds);
 
     setField('sys-inf-dx',   s?.INFECTION?.dx);
+    setField('sys-inf-cx',   s?.INFECTION?.cx);
     setField('sys-inf-plan', s?.INFECTION?.plan);
     if (s?.INFECTION?.meds)  setField('sys-inf-meds', s.INFECTION.meds);
 
@@ -1742,9 +1746,9 @@ function loadPriorNoteIntoSystems() {
     setField('sys-endo-plan', s?.ENDO?.plan);
     if (s?.ENDO?.meds)        setField('sys-endo-meds', s.ENDO.meds);
 
-    setField('sys-misc-dx',   s?.['SKIN/OTHER']?.dx);
-    setField('sys-misc-plan', s?.['SKIN/OTHER']?.plan);
-    if (s?.['SKIN/OTHER']?.meds) setField('sys-misc-meds', s['SKIN/OTHER'].meds);
+    setField('sys-misc-dx',   s?.['SKIN/MISC']?.dx);
+    setField('sys-misc-plan', s?.['SKIN/MISC']?.plan);
+    if (s?.['SKIN/MISC']?.meds) setField('sys-misc-meds', s['SKIN/MISC'].meds);
 
     setField('sys-dispo-content', s?.['DISPO/PT']?.content);
 
