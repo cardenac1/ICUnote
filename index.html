@@ -269,6 +269,29 @@
         @media (max-width: 1200px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 1024px) { .main-grid { grid-template-columns: 1fr; } }
         @media (max-width: 640px) { .dashboard-grid { grid-template-columns: 1fr; } .scard.span2 { grid-column: span 1; } }
+
+        /* ===== EDITABLE SYSTEMS VIEW ===== */
+        .edit-field {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid transparent;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.4rem;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            line-height: 1.4;
+            flex: 1;
+            word-break: break-word;
+            min-height: 1.4em;
+            transition: border-color 0.15s, background 0.15s;
+            cursor: text;
+        }
+        .edit-field:hover { border-color: rgba(255,255,255,0.15); }
+        .edit-field:focus { outline: none; border-color: var(--primary); background: rgba(59,130,246,0.08); box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+        .edit-field.multiline { min-height: 2.8em; }
+        .edit-row { display: flex; gap: 0.4rem; font-size: 0.75rem; line-height: 1.4; align-items: flex-start; }
+        .edit-sep { border-top: 1px solid rgba(255,255,255,0.05); margin: 0.2rem 0; }
+        .systems-toolbar { display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; align-items: center; }
+        .systems-toolbar .hint { color: var(--text-secondary); font-size: 0.72rem; margin-right: 0.25rem; }
     </style>
 </head>
 <body>
@@ -305,6 +328,7 @@
                 <div class="view-toggle">
                     <button class="toggle-btn active" id="btnDash" onclick="showDashboard()">⊞ Dashboard</button>
                     <button class="toggle-btn" id="btnText" onclick="showTextView()">≡ Text</button>
+                    <button class="toggle-btn" id="btnSystems" onclick="showSystemsView()">✏️ Systems</button>
                 </div>
                 <div class="export-btns">
                     <button onclick="copyNote()">📋 Copy Text</button>
@@ -314,10 +338,14 @@
         </div>
         <div id="dashboardView"></div>
         <div id="textView" class="note-output" style="display:none;"></div>
+        <div id="systemsView" style="display:none;"></div>
     </div>
 </div>
 
 <script>
+// ===== GLOBAL STATE =====
+let _lastNoteData = null;
+
 // ===== MEDICATION ABBREVIATION DATABASE =====
 const MED_ABBREVIATIONS = {
     // Pain medications
@@ -928,8 +956,10 @@ function generateNote() {
         const urineOutputData = extractUrineOutputSince7AM(violinInput, labData.weight);
         const noteText = buildICUNote(labData, meds, dietOrder, urinaryStatus, urineOutputData, null, null);
         const dashHtml = buildDashboard(labData, meds, dietOrder, urinaryStatus, urineOutputData, null, null);
+        _lastNoteData = { labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections: null, previousLabs: null };
         document.getElementById('textView').textContent = noteText;
         document.getElementById('dashboardView').innerHTML = dashHtml;
+        document.getElementById('systemsView').innerHTML = '';
         document.getElementById('outputSection').style.display = 'block';
         showDashboard();
         document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
@@ -956,8 +986,10 @@ function updateNote() {
         const previousLabs = extractPreviousLabs(existingNote);
         const noteText = buildICUNote(labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections, previousLabs);
         const dashHtml = buildDashboard(labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections, previousLabs);
+        _lastNoteData = { labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections, previousLabs };
         document.getElementById('textView').textContent = noteText;
         document.getElementById('dashboardView').innerHTML = dashHtml;
+        document.getElementById('systemsView').innerHTML = '';
         document.getElementById('outputSection').style.display = 'block';
         showDashboard();
         document.getElementById('outputSection').scrollIntoView({ behavior: 'smooth' });
@@ -1341,15 +1373,320 @@ function buildICUNote(labData, meds, dietOrder, urinaryStatus, urineOutputData, 
 function showDashboard() {
     document.getElementById('dashboardView').style.display = 'block';
     document.getElementById('textView').style.display = 'none';
+    document.getElementById('systemsView').style.display = 'none';
     document.getElementById('btnDash').classList.add('active');
     document.getElementById('btnText').classList.remove('active');
+    document.getElementById('btnSystems').classList.remove('active');
 }
 
 function showTextView() {
     document.getElementById('dashboardView').style.display = 'none';
     document.getElementById('textView').style.display = 'block';
+    document.getElementById('systemsView').style.display = 'none';
     document.getElementById('btnDash').classList.remove('active');
     document.getElementById('btnText').classList.add('active');
+    document.getElementById('btnSystems').classList.remove('active');
+}
+
+function showSystemsView() {
+    if (!_lastNoteData) { showStatus('Generate a note first!', 'error'); return; }
+    const sv = document.getElementById('systemsView');
+    if (!sv.innerHTML.trim()) {
+        const { labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections, previousLabs } = _lastNoteData;
+        sv.innerHTML = buildEditableSystems(labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections, previousLabs);
+    }
+    document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('textView').style.display = 'none';
+    sv.style.display = 'block';
+    document.getElementById('btnDash').classList.remove('active');
+    document.getElementById('btnText').classList.remove('active');
+    document.getElementById('btnSystems').classList.add('active');
+}
+
+// ===== EDITABLE SYSTEMS BUILD =====
+
+function escHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function buildEditableSystems(labData, meds, dietOrder, urinaryStatus, urineOutputData, existingSections, previousLabs) {
+    const fmt = (list) => list.length > 0 ? [...new Set(list)].join(', ') : 'none';
+    const L = labData.labs;
+
+    function editCard(id, title, color, fields, cssClass) {
+        const body = fields.map(f => {
+            if (f.sep) return '<div class="edit-sep"></div>';
+            return `<div class="edit-row">
+                <span class="lbl">${f.label}</span>
+                <div class="edit-field${f.multi ? ' multiline' : ''}" id="${id}-${f.key}" contenteditable="true">${escHtml(f.value)}</div>
+            </div>`;
+        }).join('');
+        return `<div class="scard${cssClass ? ' ' + cssClass : ''}" style="--c:${color}">
+            <div class="scard-hdr">${title}</div>
+            <div class="scard-body">${body}</div>
+        </div>`;
+    }
+
+    // NEURO
+    const neuroCard = editCard('sys-neuro', 'NEURO', '#a78bfa', [
+        { label:'Dx',   key:'dx',   value: existingSections?.NEURO?.dx   || 'No Active Issues' },
+        { label:'Exam', key:'exam', value: existingSections?.NEURO?.exam || 'GCS 15 (E4V5M6), pain well controlled, strength and sensation intact BUE+BLE, CN II-XII grossly intact, PERRLA, EOMI', multi:true },
+        { label:'Meds', key:'meds', value: existingSections?.NEURO?.meds || fmt(meds.neuro) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.NEURO?.plan || '', multi:true },
+    ]);
+
+    // PULM
+    let o2Val = existingSections?.PULM?.o2method || labData.o2therapy || 'RA';
+    if (!existingSections?.PULM?.o2method && labData.o2therapy === 'Vent' && labData.ventSettings.mode) {
+        const vs = labData.ventSettings;
+        o2Val = `Vent ${vs.mode}${vs.rate ? ` RR${vs.rate}` : ''}${vs.tv ? `/Vt${vs.tv}` : ''}${vs.fio2 ? `/FiO2${vs.fio2}%` : ''}${vs.peep ? `/PEEP${vs.peep}` : ''}`;
+    }
+    const pulmCard = editCard('sys-pulm', 'PULM', '#60a5fa', [
+        { label:'Dx',   key:'dx',   value: existingSections?.PULM?.dx   || 'No Active Issues' },
+        { label:'Exam', key:'exam', value: existingSections?.PULM?.exam || 'CTAB, regular rate, Satting >95%', multi:true },
+        { label:'O2',   key:'o2',   value: o2Val },
+        { label:'Meds', key:'meds', value: existingSections?.PULM?.meds || fmt(meds.pulm) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.PULM?.plan || '', multi:true },
+    ]);
+
+    // CV
+    let cvExamVal = '';
+    if (labData.vitals.map && labData.vitals.map.length > 0) {
+        const minMAP = Math.min(...labData.vitals.map);
+        cvExamVal = (minMAP < 65 ? `MAP ${minMAP}*, ` : `MAP>${minMAP}, `);
+    } else { cvExamVal = 'MAP>65, '; }
+    if (labData.vitals.hr && labData.vitals.hr.length > 0) {
+        cvExamVal += `HR ${Math.min(...labData.vitals.hr)}-${Math.max(...labData.vitals.hr)}, `;
+    }
+    cvExamVal += 'RRR, no edema, 2+ BL PT/DP, Radial/Ulnar pulses';
+    const cvCard = editCard('sys-cv', 'CV', '#f87171', [
+        { label:'Dx',     key:'dx',     value: existingSections?.CV?.dx     || 'No Active Issues' },
+        { label:'Exam',   key:'exam',   value: existingSections?.CV?.exam   || cvExamVal, multi:true },
+        { label:'Access', key:'access', value: existingSections?.CV?.access || 'PIVs' },
+        { label:'Meds',   key:'meds',   value: existingSections?.CV?.meds   || fmt(meds.cv) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.CV?.plan || '', multi:true },
+    ]);
+
+    // GI
+    const giCard = editCard('sys-gi', 'GI', '#34d399', [
+        { label:'Dx',    key:'dx',        value: existingSections?.GI?.dx        || 'No Active Issues' },
+        { label:'Exam',  key:'exam',      value: existingSections?.GI?.exam      || 'abd soft, non tender non distended, incisions c/d/i, BM:', multi:true },
+        { label:'Diet',  key:'nutrition', value: existingSections?.GI?.nutrition || dietOrder || 'diet order' },
+        { label:'GI Ppx',key:'ppx',       value: existingSections?.GI?.meds      || fmt(meds.gi_ppx) },
+        { label:'Bowel', key:'bowel',     value: existingSections?.GI?.bowel     || fmt(meds.gi_bowel) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.GI?.plan || '', multi:true },
+    ]);
+
+    // RENAL/FLUIDS
+    let renalExamVal = `${urinaryStatus}, `;
+    if (urineOutputData && urineOutputData.totalOutput > 0 && urineOutputData.ccKgHr !== null) {
+        const cc = urineOutputData.ccKgHr.toFixed(1);
+        renalExamVal += `UOP ${Math.round(urineOutputData.totalOutput)} cc (${cc} cc/kg/hr${parseFloat(cc) < 0.5 ? '*' : ''}), `;
+    } else if (labData.output && labData.weight) {
+        const cc = (labData.output / 24 / labData.weight).toFixed(1);
+        renalExamVal += `UOP ${Math.round(labData.output)} cc/24h (${cc} cc/kg/hr${parseFloat(cc) < 0.5 ? '*' : ''}), `;
+    }
+    if (labData.intake) renalExamVal += `I: ${Math.round(labData.intake)}mL, `;
+    if (labData.output) renalExamVal += `O: ${Math.round(labData.output)}mL`;
+    if (labData.intake && labData.output) {
+        const bal = labData.intake - labData.output;
+        renalExamVal += `, Bal: ${bal >= 0 ? '+' : ''}${Math.round(bal)}mL`;
+    }
+    let elecParts = [];
+    if (L.na)   elecParts.push(`Na ${L.na < 135 || L.na > 145 ? L.na+'*' : L.na}`);
+    if (L.k)    elecParts.push(`K ${L.k < 3.5 || L.k > 5.0 ? L.k+'*' : L.k}`);
+    if (L.cl)   elecParts.push(`Cl ${L.cl}`);
+    if (L.co2)  elecParts.push(`CO2 ${L.co2}`);
+    if (L.bun)  elecParts.push(`BUN ${L.bun > 24 ? L.bun+'*' : L.bun}`);
+    if (L.cr)   elecParts.push(`Cr ${L.cr > 1.2 ? L.cr+'*' : L.cr}`);
+    if (L.ca)   elecParts.push(`Ca ${L.ca < 8.5 || L.ca > 10.2 ? L.ca+'*' : L.ca}`);
+    if (L.mg)   elecParts.push(`Mg ${L.mg < 1.7 || L.mg > 2.2 ? L.mg+'*' : L.mg}`);
+    if (L.phos) elecParts.push(`Phos ${L.phos < 2.5 || L.phos > 4.5 ? L.phos+'*' : L.phos}`);
+    const renalCard = editCard('sys-renal', 'RENAL / FLUIDS', '#22d3ee', [
+        { label:'Dx',    key:'dx',    value: existingSections?.['RENAL/FLUIDS']?.dx || 'No Active Issues' },
+        { label:'UO/IO', key:'exam',  value: renalExamVal, multi:true },
+        { label:'Lytes', key:'lytes', value: elecParts.join(', ') || '' },
+        { label:'IVF',   key:'meds',  value: existingSections?.['RENAL/FLUIDS']?.meds || fmt(meds.renal) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.['RENAL/FLUIDS']?.plan || '', multi:true },
+    ], 'span2');
+
+    // HEME
+    let hemeParts = [];
+    if (L.hgb) { const h=L.hgb; let s=h<7?`Hgb ${h}*`:`Hgb ${h}`; if(h<7&&previousLabs?.hgb) s+=` (prev ${previousLabs.hgb})`; hemeParts.push(s); }
+    if (L.hct) { const h=L.hct; hemeParts.push(h<21?`Hct ${h}*`:`Hct ${h}`); }
+    if (L.plt) { const p=L.plt; let s=p<150||p>400?`PLT ${p}*`:`PLT ${p}`; if((p<150||p>400)&&previousLabs?.plt) s+=` (prev ${previousLabs.plt})`; hemeParts.push(s); }
+    if (L.inr) { const i=L.inr; let s=i>1.1?`INR ${i}*`:`INR ${i}`; if(i>1.1&&previousLabs?.inr) s+=` (prev ${previousLabs.inr})`; hemeParts.push(s); }
+    if (L.pt)  hemeParts.push(`PT ${L.pt>13.5?L.pt+'*':L.pt}`);
+    if (L.ptt) hemeParts.push(`PTT ${L.ptt>35?L.ptt+'*':L.ptt}`);
+    const hemeCard = editCard('sys-heme', 'HEME', '#fb923c', [
+        { label:'Dx',      key:'dx',   value: existingSections?.HEME?.dx   || 'No Active Issues' },
+        { label:'Labs',    key:'labs', value: hemeParts.join(', ') || '' },
+        { label:'DVT ppx', key:'meds', value: existingSections?.HEME?.meds || fmt(meds.anticoag) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.HEME?.plan || '', multi:true },
+    ]);
+
+    // INFECTION
+    let infParts = [];
+    if (L.wbc) { const w=L.wbc; let s=w<4.5||w>11?`WBC ${w}*`:`WBC ${w}`; if((w<4.5||w>11)&&previousLabs?.wbc) s+=` (prev ${previousLabs.wbc})`; infParts.push(s); }
+    if (labData.vitals.temp && labData.vitals.temp.length > 0) {
+        const tmax = Math.max(...labData.vitals.temp);
+        infParts.push(`Tmax ${tmax>38?tmax+'°C*':tmax+'°C'}`);
+    }
+    if (L.pct) infParts.push(`PCT ${L.pct}`);
+    if (L.crp) infParts.push(`CRP ${L.crp}`);
+    const infCard = editCard('sys-inf', 'INFECTION', '#facc15', [
+        { label:'Dx',   key:'dx',   value: existingSections?.INFECTION?.dx   || 'No Active Issues' },
+        { label:'Cx',   key:'cx',   value: 'None pending' },
+        { label:'Exam', key:'exam', value: infParts.join(', ') || '' },
+        { label:'Meds', key:'meds', value: existingSections?.INFECTION?.meds || fmt(meds.antibiotics) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.INFECTION?.plan || '', multi:true },
+    ]);
+
+    // ENDO
+    let bgVal = 'blood glucose range';
+    if (L.gluMin && L.gluMax) bgVal = `${Math.round(L.gluMin)}-${Math.round(L.gluMax)}${(L.gluMin<70||L.gluMax>200)?'*':''}`;
+    const endoCard = editCard('sys-endo', 'ENDO', '#f472b6', [
+        { label:'Dx',   key:'dx',   value: existingSections?.ENDO?.dx   || 'No Active Issues' },
+        { label:'BG',   key:'bg',   value: bgVal },
+        { label:'Meds', key:'meds', value: existingSections?.ENDO?.meds || fmt(meds.endo) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.ENDO?.plan || '', multi:true },
+    ]);
+
+    // SKIN/MISC
+    let miscLabParts = [];
+    if (L.lactate)    miscLabParts.push(`Lactate ${L.lactate>2?L.lactate+'*':L.lactate}`);
+    if (L.tbili)      miscLabParts.push(`TBili ${L.tbili>1.2?L.tbili+'*':L.tbili}`);
+    if (L.alt)        miscLabParts.push(`ALT ${L.alt>56?L.alt+'*':L.alt}`);
+    if (L.ast)        miscLabParts.push(`AST ${L.ast>40?L.ast+'*':L.ast}`);
+    if (L.trop)       miscLabParts.push(`Trop ${L.trop>0.04?L.trop+'*':L.trop}`);
+    if (L.bnp)        miscLabParts.push(`BNP ${L.bnp>100?L.bnp+'*':L.bnp}`);
+    if (L.lipase)     miscLabParts.push(`Lipase ${L.lipase>60?L.lipase+'*':L.lipase}`);
+    if (L.albumin_lab) miscLabParts.push(`Albumin ${L.albumin_lab<3.5?L.albumin_lab+'*':L.albumin_lab}`);
+    const miscCard = editCard('sys-misc', 'SKIN / MISC', '#9ca3af', [
+        { label:'Dx',   key:'dx',   value: existingSections?.['SKIN/OTHER']?.dx   || 'No Active Issues' },
+        { label:'Labs', key:'labs', value: miscLabParts.join(', ') || 'BMP/CBC q12' },
+        { label:'Meds', key:'meds', value: existingSections?.['SKIN/OTHER']?.meds || fmt(meds.other) },
+        { sep: true },
+        { label:'Plan', key:'plan', value: existingSections?.['SKIN/OTHER']?.plan || '', multi:true },
+    ]);
+
+    // DISPO/PT
+    const dispoVal = existingSections?.['DISPO/PT']?.content || 'ICU level of care · PT/OT OOB · Goals of care discussed';
+    const dispoCard = `<div class="scard full" style="--c:#2dd4bf">
+        <div class="scard-hdr">DISPO / PT</div>
+        <div class="scard-body">
+            <div class="edit-row">
+                <div class="edit-field multiline" id="sys-dispo-content" contenteditable="true">${escHtml(dispoVal)}</div>
+            </div>
+        </div>
+    </div>`;
+
+    return `<div class="systems-toolbar">
+        <span class="hint">Click any field to edit</span>
+        <button onclick="compileFromSystems()" class="success" style="padding:0.3rem 0.75rem;font-size:0.78rem;">📝 Compile to Text Note</button>
+        <button onclick="copySystemsNote()" style="padding:0.3rem 0.75rem;font-size:0.78rem;">📋 Copy Note</button>
+    </div>
+    <div class="dashboard-grid">
+        ${neuroCard}${pulmCard}${cvCard}
+        ${giCard}${renalCard}
+        ${hemeCard}${infCard}${endoCard}
+        ${miscCard}${dispoCard}
+    </div>`;
+}
+
+function getField(id) {
+    const el = document.getElementById(id);
+    return el ? el.innerText.trim() : '';
+}
+
+function compileFromSystems() {
+    let note = '';
+    note += 'NEURO:\n';
+    note += `Dx: ${getField('sys-neuro-dx')}\n`;
+    note += `Exam: ${getField('sys-neuro-exam')}\n`;
+    note += `Meds: ${getField('sys-neuro-meds')}\n`;
+    note += `Plan: \n${getField('sys-neuro-plan')}\n\n`;
+
+    note += 'PULM:\n';
+    note += `Dx: ${getField('sys-pulm-dx')}\n`;
+    note += `Exam: ${getField('sys-pulm-exam')}\n`;
+    note += `O2 method: ${getField('sys-pulm-o2')}\n`;
+    note += `Meds: ${getField('sys-pulm-meds')}\n`;
+    note += `Plan: \n${getField('sys-pulm-plan')}\n\n`;
+
+    note += 'CV:\n';
+    note += `Dx: ${getField('sys-cv-dx')}\n`;
+    note += `Exam: ${getField('sys-cv-exam')}\n`;
+    note += `Access: ${getField('sys-cv-access')}\n`;
+    note += `Meds: ${getField('sys-cv-meds')}\n`;
+    note += `Plan: \n${getField('sys-cv-plan')}\n\n`;
+
+    note += 'GI:\n';
+    note += `Dx: ${getField('sys-gi-dx')}\n`;
+    note += `Exam: ${getField('sys-gi-exam')}\n`;
+    note += `Nutrition: ${getField('sys-gi-nutrition')}\n`;
+    note += `GI ppx: ${getField('sys-gi-ppx')}\n`;
+    note += `Bowel reg/meds: ${getField('sys-gi-bowel')}\n`;
+    note += `Plan: \n${getField('sys-gi-plan')}\n\n`;
+
+    note += 'RENAL/FLUIDS:\n';
+    note += `Dx: ${getField('sys-renal-dx')}\n`;
+    note += `Exam: ${getField('sys-renal-exam')}\n`;
+    note += `Electrolytes: ${getField('sys-renal-lytes')}\n`;
+    note += `Meds/IVF: ${getField('sys-renal-meds')}\n`;
+    note += `Plan: \n${getField('sys-renal-plan')}\n\n`;
+
+    note += 'HEME:\n';
+    note += `Dx: ${getField('sys-heme-dx')}\n`;
+    note += `Labs: ${getField('sys-heme-labs')}\n`;
+    note += `DVT ppx: ${getField('sys-heme-meds')}\n`;
+    note += `Plan: \n${getField('sys-heme-plan')}\n\n`;
+
+    note += 'INFECTION:\n';
+    note += `Dx: ${getField('sys-inf-dx')}\n`;
+    note += `Cx: ${getField('sys-inf-cx')}\n`;
+    note += `Exam: ${getField('sys-inf-exam')}\n`;
+    note += `Meds: ${getField('sys-inf-meds')}\n`;
+    note += `Plan: \n${getField('sys-inf-plan')}\n\n`;
+
+    note += 'ENDO:\n';
+    note += `Dx: ${getField('sys-endo-dx')}\n`;
+    note += `BG: ${getField('sys-endo-bg')}\n`;
+    note += `Meds/TDDI: ${getField('sys-endo-meds')}\n`;
+    note += `Plan: \n${getField('sys-endo-plan')}\n\n`;
+
+    note += 'SKIN/MISC:\n';
+    note += `Dx: ${getField('sys-misc-dx')}\n`;
+    note += `Labs: ${getField('sys-misc-labs')}\n`;
+    note += `Meds: ${getField('sys-misc-meds')}\n`;
+    note += `Plan: \n${getField('sys-misc-plan')}\n\n`;
+
+    note += 'DISPO/PT:\n';
+    note += `${getField('sys-dispo-content')}\n`;
+
+    document.getElementById('textView').textContent = note;
+    showTextView();
+    showStatus('✅ Compiled — now in Text view', 'success');
+}
+
+function copySystemsNote() {
+    compileFromSystems();
+    const noteText = document.getElementById('textView').textContent;
+    navigator.clipboard.writeText(noteText).then(() => {
+        showStatus('✅ Note copied to clipboard!', 'success');
+        showSystemsView();
+    }).catch(() => {
+        showStatus('❌ Failed to copy note', 'error');
+        showSystemsView();
+    });
 }
 
 // ===== UTILITY =====
